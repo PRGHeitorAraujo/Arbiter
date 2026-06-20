@@ -123,12 +123,16 @@
             <button class="primary-button" type="submit">buscar decisoes</button>
           </form>
           <div class="chips" data-app-chips></div>
-          <div class="result-meta">
+          <div class="result-meta" data-result-meta>
             <strong data-result-count></strong>
             <span data-conflict-pill></span>
           </div>
           <div class="decision-grid" data-decision-grid></div>
           <div class="conflict-panel" data-conflict-panel hidden></div>
+          <div class="detail-panel" data-detail-panel hidden>
+            <button class="text-button detail-back" type="button" data-close-detail>← voltar</button>
+            <div data-detail-content></div>
+          </div>
         </div>
 
         <div class="app-view" data-panel="salvos">
@@ -144,6 +148,6 @@
       </section>
     </main>
 
-    <script src="app.js"></script>
+    <script type="module" src="app.js"></script>
   </body>
 </html>

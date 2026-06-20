@@ -1,3 +1,6 @@
+import { searchDecisions } from "./searchEngine.js";
+import { findConflict, findConflictsFor } from "./conflictEngine.js";
+
 const sampleQueries = [
   "kafka vs rabbitmq",
   "monolito vs microsservicos",
@@ -16,13 +19,6 @@ const state = {
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-
-function normalize(text) {
-  return String(text)
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "");
-}
 
 function escapeHtml(value) {
   return String(value)
@@ -67,51 +63,6 @@ function validateDecision(decision) {
   }
 }
 
-function scoreDecision(decision, query) {
-  const normalizedQuery = normalize(query);
-  const haystack = normalize(
-    [
-      decision.company,
-      decision.topic,
-      decision.subject,
-      decision.title,
-      decision.context,
-      decision.reason,
-      decision.tags.join(" "),
-    ].join(" ")
-  );
-  const words = normalizedQuery.split(/[^a-z0-9]+/).filter((word) => word.length > 2);
-  const exactSubject = normalizedQuery.includes(normalize(decision.subject)) ? 4 : 0;
-  const exactTopic = decision.tags.some((tag) => normalizedQuery.includes(normalize(tag))) ? 3 : 0;
-  return words.reduce((sum, word) => sum + (haystack.includes(word) ? 1 : 0), exactSubject + exactTopic);
-}
-
-function searchDecisions(query) {
-  return state.decisions
-    .map((decision) => ({ ...decision, score: scoreDecision(decision, query) }))
-    .filter((decision) => decision.score > 0 || query.trim().length < 3)
-    .sort((a, b) => b.score - a.score || a.company.localeCompare(b.company))
-    .slice(0, 4);
-}
-
-function findConflict(results) {
-  for (const left of results) {
-    const opposite = results.find(
-      (right) =>
-        right.id !== left.id &&
-        right.topic === left.topic &&
-        right.subject === left.subject &&
-        right.verdict !== left.verdict &&
-        [left.verdict, right.verdict].includes("adopted") &&
-        [left.verdict, right.verdict].includes("rejected")
-    );
-    if (opposite) {
-      return left.verdict === "rejected" ? [left, opposite] : [opposite, left];
-    }
-  }
-  return null;
-}
-
 function renderChips(rootSelector) {
   const root = $(rootSelector);
   root.innerHTML = sampleQueries
@@ -137,19 +88,15 @@ function renderSources(rootSelector) {
 }
 
 function verdictLabel(verdict) {
-  return {
-    adopted: "adotou",
-    rejected: "rejeitou",
-    kept: "manteve",
-  }[verdict];
+  return { adopted: "adotou", rejected: "rejeitou", kept: "manteve" }[verdict];
 }
 
 function renderDecisionCard(decision) {
   const isSaved = state.saved.has(decision.id);
   return `
-    <article class="decision-card">
+    <article class="decision-card" data-detail-for="${escapeHtml(decision.id)}">
       <div class="card-top">
-        <span class="company-pill" style="background:${escapeHtml(decision.color)}; color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+        <span class="company-pill" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
         <span class="year">${escapeHtml(decision.year)}</span>
         <span class="tag ${escapeHtml(decision.verdict)}">${escapeHtml(verdictLabel(decision.verdict))}</span>
       </div>
@@ -166,6 +113,21 @@ function renderDecisionCard(decision) {
   `;
 }
 
+function renderConflictSide(decision) {
+  const sourceHost = new URL(decision.sourceUrl).hostname;
+  return `
+    <article class="conflict-side">
+      <div class="card-top">
+        <span class="company-pill" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+        <span class="year">${escapeHtml(decision.year)}</span>
+      </div>
+      <h3>${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
+      <p>${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
+      <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(sourceHost)}</a>
+    </article>
+  `;
+}
+
 function renderConflict(pair) {
   const panel = $("[data-conflict-panel]");
   if (!pair) {
@@ -176,12 +138,12 @@ function renderConflict(pair) {
   }
 
   const [rejected, adopted] = pair;
-  $("[data-conflict-pill]").innerHTML = `<span class="conflict-pill">conflito detectado - ${escapeHtml(
+  $("[data-conflict-pill]").innerHTML = `<span class="conflict-pill">conflito detectado — ${escapeHtml(
     rejected.company.toLowerCase()
   )} vs ${escapeHtml(adopted.company.toLowerCase())}</span>`;
   panel.hidden = false;
   panel.innerHTML = `
-    <h2>conflito - ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
+    <h2>conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
     <div class="conflict-compare">
       ${renderConflictSide(rejected)}
       <span class="versus">vs</span>
@@ -190,23 +152,54 @@ function renderConflict(pair) {
   `;
 }
 
-function renderConflictSide(decision) {
-  const sourceHost = new URL(decision.sourceUrl).hostname;
-  return `
-    <article class="conflict-side">
-      <div class="card-top">
-        <span class="company-pill" style="background:${escapeHtml(decision.color)}; color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
-        <span class="year">${escapeHtml(decision.year)}</span>
-      </div>
-      <h3>${decision.verdict === "rejected" ? "saiu sem Kafka" : "usou Kafka"}</h3>
-      <p>${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
-      <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(sourceHost)}</a>
-    </article>
+function renderDetail(decision) {
+  const conflicts = findConflictsFor(decision, state.decisions);
+  const others = conflicts.map(([rej, adp]) => (rej.id === decision.id ? adp : rej));
+
+  const conflictsHtml = others.length
+    ? `<div class="detail-conflicts">
+        <h3>decisoes opostas</h3>
+        <div class="conflict-compare">
+          ${others.map(renderConflictSide).join('<span class="versus">vs</span>')}
+        </div>
+      </div>`
+    : "";
+
+  $("[data-detail-content]").innerHTML = `
+    <div class="card-top">
+      <span class="company-pill" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+      <span class="year">${escapeHtml(decision.year)}</span>
+      <span class="tag ${escapeHtml(decision.verdict)}">${escapeHtml(verdictLabel(decision.verdict))}</span>
+    </div>
+    <h2 class="detail-title">${escapeHtml(decision.title)}</h2>
+    <dl class="detail-body">
+      <dt>contexto</dt>
+      <dd>${escapeHtml(decision.context)}</dd>
+      <dt>razao</dt>
+      <dd>${escapeHtml(decision.reason)}</dd>
+    </dl>
+    <div class="detail-tags">${decision.tags.map((t) => `<span class="chip">${escapeHtml(t)}</span>`).join("")}</div>
+    <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
+      ver fonte → ${escapeHtml(new URL(decision.sourceUrl).hostname)}
+    </a>
+    ${conflictsHtml}
   `;
+
+  $("[data-decision-grid]").hidden = true;
+  $("[data-conflict-panel]").hidden = true;
+  $("[data-result-meta]").hidden = true;
+  $("[data-detail-panel]").hidden = false;
+}
+
+function closeDetail() {
+  $("[data-decision-grid]").hidden = false;
+  $("[data-result-meta]").hidden = false;
+  $("[data-detail-panel]").hidden = true;
+  renderConflict(findConflict(state.results));
 }
 
 function renderResults() {
-  state.results = searchDecisions(state.query);
+  state.results = searchDecisions(state.decisions, state.query);
   $("[data-query-input]").value = state.query;
   $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
   $("[data-decision-grid]").innerHTML = state.results.map(renderDecisionCard).join("");
@@ -263,6 +256,17 @@ function bindEvents() {
       const pair = findConflict([decision, ...state.decisions]);
       renderConflict(pair);
       $("[data-conflict-panel]").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    if (event.target.closest("[data-close-detail]")) {
+      closeDetail();
+      return;
+    }
+
+    const card = event.target.closest("[data-detail-for]");
+    if (card && !event.target.closest("[data-save], [data-conflict-for], a")) {
+      const decision = state.decisions.find((d) => d.id === card.dataset.detailFor);
+      if (decision) renderDetail(decision);
     }
 
     const tab = event.target.closest("[data-view]");

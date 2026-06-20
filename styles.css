@@ -627,6 +627,81 @@ input::placeholder {
   padding: 28px;
 }
 
+.detail-panel {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  margin-top: 28px;
+  padding: 32px 36px;
+}
+
+.detail-back {
+  color: var(--muted);
+  display: inline-flex;
+  gap: 6px;
+  margin-bottom: 22px;
+}
+
+.detail-back:hover {
+  color: var(--ink);
+}
+
+.detail-title {
+  font-size: 1.6rem;
+  line-height: 1.15;
+  margin: 14px 0 22px;
+}
+
+.detail-body {
+  display: grid;
+  gap: 14px 28px;
+  grid-template-columns: auto 1fr;
+  margin: 0 0 22px;
+}
+
+.detail-body dt {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  padding-top: 3px;
+  text-transform: uppercase;
+}
+
+.detail-body dd {
+  color: var(--ink);
+  font-weight: 700;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 22px;
+}
+
+.detail-conflicts {
+  background: var(--panel);
+  border-radius: 10px;
+  margin-top: 28px;
+  padding: 22px 24px;
+}
+
+.detail-conflicts h3 {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 18px;
+  text-transform: uppercase;
+}
+
+.decision-card {
+  cursor: pointer;
+}
+
 .sr-only {
   height: 1px;
   margin: -1px;

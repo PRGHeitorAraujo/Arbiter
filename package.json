@@ -2,6 +2,7 @@
   "name": "arbiter",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "Buscador de decisões reais de engenharia com conflitos explícitos.",
   "scripts": {
     "dev": "node server.js",

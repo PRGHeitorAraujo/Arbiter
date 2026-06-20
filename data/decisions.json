@@ -1,0 +1,104 @@
+[
+  {
+    "id": "dagster-kafka-rejected",
+    "empresa": "Dagster",
+    "year": "2022",
+    "topic": "message-queue",
+    "subject": "Kafka",
+    "verdict": "rejected",
+    "title": "rejeitou Kafka",
+    "context": "startup pequena, time enxuto, logs de pipelines de dados em near-real-time",
+    "reason": "custo operacional de adotar infra nova nao se justificava; Postgres ja estava no stack e resolvia com muito menos complexidade.",
+    "source_url": "https://dagster.io/blog",
+    "tags": ["kafka", "postgres", "startup", "message-queue", "complexidade"],
+    "ui": {
+      "color": "#edeaff",
+      "tone": "#534ab7"
+    }
+  },
+  {
+    "id": "hotstar-kafka-adopted",
+    "empresa": "Disney+ Hotstar",
+    "year": "2020",
+    "topic": "message-queue",
+    "subject": "Kafka",
+    "verdict": "adopted",
+    "title": "adotou Kafka",
+    "context": "50M usuarios simultaneos e bilhoes de eventos em evento ao vivo",
+    "reason": "alto throughput e baixa latencia eram o requisito central; Kafka entregava o volume exigido e ja fazia sentido no stack.",
+    "source_url": "https://blog.hotstar.com/",
+    "tags": ["kafka", "streaming", "scale", "message-queue", "latencia"],
+    "ui": {
+      "color": "#dcf5ec",
+      "tone": "#14866d"
+    }
+  },
+  {
+    "id": "shopify-rabbitmq-kept",
+    "empresa": "Shopify",
+    "year": "2021",
+    "topic": "message-queue",
+    "subject": "RabbitMQ",
+    "verdict": "kept",
+    "title": "manteve RabbitMQ",
+    "context": "plataforma grande com workloads variados e custo alto de migracao completa",
+    "reason": "a complexidade de Kafka nao compensava em todos os fluxos; sharding e disciplina operacional estenderam a vida do RabbitMQ.",
+    "source_url": "https://shopify.engineering/",
+    "tags": ["rabbitmq", "sharding", "message-queue", "migracao"],
+    "ui": {
+      "color": "#fde8f0",
+      "tone": "#b44d70"
+    }
+  },
+  {
+    "id": "uber-kafka-standard",
+    "empresa": "Uber",
+    "year": "2020",
+    "topic": "message-queue",
+    "subject": "Kafka",
+    "verdict": "adopted",
+    "title": "adotou Kafka como padrao",
+    "context": "escala de trilhoes de mensagens por dia e time de infraestrutura dedicado",
+    "reason": "o custo operacional foi absorvido pelo tamanho da plataforma; padronizar eventos reduziu variacao entre times.",
+    "source_url": "https://www.uber.com/blog/engineering/",
+    "tags": ["kafka", "platform", "message-queue", "infra"],
+    "ui": {
+      "color": "#eaf5de",
+      "tone": "#5a8b2d"
+    }
+  },
+  {
+    "id": "segment-monolith",
+    "empresa": "Segment",
+    "year": "2020",
+    "topic": "architecture",
+    "subject": "Microservices",
+    "verdict": "rejected",
+    "title": "voltou para um monolito",
+    "context": "time lidando com muitos servicos pequenos, deploys complexos e pouca previsibilidade operacional",
+    "reason": "a sobrecarga de coordenar servicos superou o beneficio; um monolito modular devolveu velocidade e clareza.",
+    "source_url": "https://segment.com/blog/",
+    "tags": ["monolito", "microsservicos", "arquitetura", "operacao"],
+    "ui": {
+      "color": "#e8f1ff",
+      "tone": "#2f7db6"
+    }
+  },
+  {
+    "id": "github-adr-graphql",
+    "empresa": "Github ADRs",
+    "year": "2023",
+    "topic": "api-style",
+    "subject": "GraphQL",
+    "verdict": "adopted",
+    "title": "adotou GraphQL em bordas especificas",
+    "context": "clientes com telas compostas e necessidade de reduzir chamadas redundantes",
+    "reason": "GraphQL ajudou onde o cliente precisava montar dados de varias origens; REST continuou suficiente em fluxos simples.",
+    "source_url": "https://github.com/joelparkerhenderson/architecture-decision-record",
+    "tags": ["graphql", "rest", "api-style", "frontend"],
+    "ui": {
+      "color": "#eceaff",
+      "tone": "#534ab7"
+    }
+  }
+]

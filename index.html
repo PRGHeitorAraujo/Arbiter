@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Arbiter mostra decisoes reais de engenharia e conflitos entre contextos diferentes."
+    />
+    <title>Arbiter</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800;900&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="site-header" id="top">
+      <a class="brand" href="#top" aria-label="Arbiter inicio">
+        <span class="brand-mark"></span>
+        <span>arbiter</span>
+      </a>
+      <nav aria-label="principal">
+        <a href="#how">como funciona</a>
+        <a href="#sources">fontes</a>
+        <a href="files/arbiter_spec.pdf">docs</a>
+      </nav>
+      <a class="ghost-button" href="#app">entrar no app</a>
+    </header>
+
+    <main>
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-media" aria-hidden="true">
+          <div class="decision-orbit">
+            <span>ADR</span>
+            <span>Kafka</span>
+            <span>Postgres</span>
+            <span>Scale</span>
+          </div>
+        </div>
+        <p class="eyebrow">decisoes reais de engenharia</p>
+        <h1 id="hero-title">o que times como stripe, discord e shopify decidiram - e por que</h1>
+        <p class="hero-copy">
+          descreva seu problema de arquitetura com contexto. o arbiter busca ADRs e eng blogs reais e mostra onde times diferentes chegaram a conclusoes opostas.
+        </p>
+        <div class="hero-actions">
+          <a class="primary-button" href="#app">comecar a consultar</a>
+          <a class="secondary-button" href="https://github.com/" target="_blank" rel="noreferrer">ver no github</a>
+        </div>
+        <ul class="trust-list" aria-label="diferenciais curtos">
+          <li>fontes reais linkadas</li>
+          <li>conflitos explicitos</li>
+          <li>sem respostas genericas</li>
+        </ul>
+      </section>
+
+      <section class="search-strip" aria-label="busca rapida">
+        <form class="search-form" data-landing-search>
+          <input
+            type="search"
+            name="query"
+            placeholder="ex: sistema de notificacoes, 50k usuarios, time de 3 devs, latencia toleravel de 2s..."
+          />
+          <button class="primary-button" type="submit">buscar decisoes</button>
+        </form>
+        <div class="chips" data-chip-row></div>
+      </section>
+
+      <section class="section" id="how" aria-labelledby="diff-title">
+        <p class="section-kicker">diferenciais</p>
+        <h2 id="diff-title">nao e mais um chatbot de arquitetura</h2>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <span class="feature-icon purple">&lt;-&gt;</span>
+            <h3>conflitos explicitos</h3>
+            <p>quando stripe foi para um lado e discord foi para outro, voce ve os dois lados com o contexto de cada decisao.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon green">src</span>
+            <h3>fontes sempre linkadas</h3>
+            <p>cada card mostra a fonte original - ADR publico, eng blog da empresa ou thread com procedencia.</p>
+          </article>
+          <article class="feature-card">
+            <span class="feature-icon amber">ctx</span>
+            <h3>contexto importa</h3>
+            <p>a resposta muda com base no tamanho do time, volume e tolerancia a complexidade. nao e conselho generico.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="source-panel" id="sources" aria-labelledby="sources-title">
+        <h2 id="sources-title">fontes indexadas</h2>
+        <div class="source-grid" data-source-grid></div>
+      </section>
+
+      <section class="cta-band" aria-labelledby="cta-title">
+        <h2 id="cta-title">pronto para consultar decisoes reais?</h2>
+        <p>sem cadastro. sem paywall. so contexto e decisoes que existiram de verdade.</p>
+        <a class="primary-button" href="#app">abrir o arbiter</a>
+      </section>
+
+      <div class="app-divider">app principal abaixo</div>
+
+      <section class="app-shell" id="app" aria-labelledby="app-title">
+        <header class="app-header">
+          <a class="brand" href="#top" aria-label="Arbiter inicio">
+            <span class="brand-mark"></span>
+            <span>arbiter</span>
+          </a>
+          <div class="app-tabs" role="tablist" aria-label="secoes do app">
+            <button class="tab active" type="button" data-view="consultar">consultar</button>
+            <button class="tab" type="button" data-view="salvos">salvos</button>
+            <button class="tab" type="button" data-view="fontes">fontes</button>
+          </div>
+        </header>
+
+        <div class="app-view active" data-panel="consultar">
+          <h2 class="sr-only" id="app-title">Consultar decisoes</h2>
+          <form class="search-form app-search" data-app-search>
+            <input type="search" name="query" data-query-input />
+            <button class="primary-button" type="submit">buscar decisoes</button>
+          </form>
+          <div class="chips" data-app-chips></div>
+          <div class="result-meta">
+            <strong data-result-count></strong>
+            <span data-conflict-pill></span>
+          </div>
+          <div class="decision-grid" data-decision-grid></div>
+          <div class="conflict-panel" data-conflict-panel hidden></div>
+        </div>
+
+        <div class="app-view" data-panel="salvos">
+          <h2>decisoes salvas</h2>
+          <div class="decision-grid" data-saved-grid></div>
+          <p class="empty-state" data-saved-empty>nenhuma decisao salva ainda.</p>
+        </div>
+
+        <div class="app-view" data-panel="fontes">
+          <h2>fontes</h2>
+          <div class="source-grid app-source-grid" data-app-source-grid></div>
+        </div>
+      </section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

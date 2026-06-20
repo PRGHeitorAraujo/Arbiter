@@ -1,0 +1,10 @@
+[
+  { "name": "Stripe", "type": "eng blog", "color": "#5b4fd1" },
+  { "name": "Discord", "type": "eng blog", "color": "#14866d" },
+  { "name": "Shopify", "type": "eng blog", "color": "#b64c73" },
+  { "name": "Uber", "type": "eng blog", "color": "#99600d" },
+  { "name": "Netflix", "type": "eng blog", "color": "#2a7ab4" },
+  { "name": "Github ADRs", "type": "publico", "color": "#4d8a2d" },
+  { "name": "Figma", "type": "eng blog", "color": "#b35235" },
+  { "name": "Hacker News", "type": "threads", "color": "#76736d" }
+]

@@ -31,9 +31,7 @@ function escapeHtml(value) {
 
 async function loadJson(path) {
   const response = await fetch(path, { cache: "no-store" });
-  if (!response.ok) {
-    throw new Error(`Nao foi possivel carregar ${path}: ${response.status}`);
-  }
+  if (!response.ok) throw new Error(`Nao foi possivel carregar ${path}: ${response.status}`);
   return response.json();
 }
 
@@ -51,44 +49,35 @@ function normalizeDecision(decision) {
 
 function validateDecision(decision) {
   const required = ["id", "empresa", "topic", "subject", "verdict", "context", "reason", "source_url", "tags"];
-  const missing = required.filter((field) => decision[field] === undefined || decision[field] === null);
-  if (missing.length) {
-    throw new Error(`Decisao ${decision.id || "sem id"} sem campos: ${missing.join(", ")}`);
-  }
-  if (!["adopted", "rejected", "kept"].includes(decision.verdict)) {
+  const missing = required.filter((f) => decision[f] === undefined || decision[f] === null);
+  if (missing.length) throw new Error(`Decisao ${decision.id || "sem id"} sem campos: ${missing.join(", ")}`);
+  if (!["adopted", "rejected", "kept"].includes(decision.verdict))
     throw new Error(`Decisao ${decision.id} tem verdict invalido: ${decision.verdict}`);
-  }
-  if (!Array.isArray(decision.tags)) {
-    throw new Error(`Decisao ${decision.id} precisa ter tags como array`);
-  }
-}
-
-function renderChips(rootSelector) {
-  const root = $(rootSelector);
-  root.innerHTML = sampleQueries
-    .map((query) => `<button class="chip" type="button" data-query="${escapeHtml(query)}">${escapeHtml(query)}</button>`)
-    .join("");
-}
-
-function renderSources(rootSelector) {
-  const root = $(rootSelector);
-  root.innerHTML = state.sources
-    .map(
-      (source) => `
-        <article class="source-item">
-          <span class="source-dot" style="background:${escapeHtml(source.color)}"></span>
-          <div>
-            <strong>${escapeHtml(source.name)}</strong>
-            <span>${escapeHtml(source.type)}</span>
-          </div>
-        </article>
-      `
-    )
-    .join("");
+  if (!Array.isArray(decision.tags)) throw new Error(`Decisao ${decision.id} precisa ter tags como array`);
 }
 
 function verdictLabel(verdict) {
   return { adopted: "adotou", rejected: "rejeitou", kept: "manteve" }[verdict];
+}
+
+// ── render helpers ────────────────────────────────────────────────────────────
+
+function renderChips(rootSelector) {
+  $(rootSelector).innerHTML = sampleQueries
+    .map((q) => `<button class="chip" type="button" data-query="${escapeHtml(q)}">${escapeHtml(q)}</button>`)
+    .join("");
+}
+
+function renderSources(rootSelector) {
+  $(rootSelector).innerHTML = state.sources
+    .map(
+      (s) => `
+        <article class="source-item">
+          <span class="source-dot" style="background:${escapeHtml(s.color)}"></span>
+          <div><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.type)}</span></div>
+        </article>`
+    )
+    .join("");
 }
 
 function renderDecisionCard(decision) {
@@ -109,12 +98,10 @@ function renderDecisionCard(decision) {
           ${isSaved ? "salvo" : "+ salvar"}
         </button>
       </div>
-    </article>
-  `;
+    </article>`;
 }
 
 function renderConflictSide(decision) {
-  const sourceHost = new URL(decision.sourceUrl).hostname;
   return `
     <article class="conflict-side">
       <div class="card-top">
@@ -123,9 +110,8 @@ function renderConflictSide(decision) {
       </div>
       <h3>${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
       <p>${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
-      <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(sourceHost)}</a>
-    </article>
-  `;
+      <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(new URL(decision.sourceUrl).hostname)}</a>
+    </article>`;
 }
 
 function renderConflict(pair) {
@@ -136,11 +122,8 @@ function renderConflict(pair) {
     $("[data-conflict-pill]").innerHTML = "";
     return;
   }
-
   const [rejected, adopted] = pair;
-  $("[data-conflict-pill]").innerHTML = `<span class="conflict-pill">conflito detectado — ${escapeHtml(
-    rejected.company.toLowerCase()
-  )} vs ${escapeHtml(adopted.company.toLowerCase())}</span>`;
+  $("[data-conflict-pill]").innerHTML = `<span class="conflict-pill">conflito detectado — ${escapeHtml(rejected.company.toLowerCase())} vs ${escapeHtml(adopted.company.toLowerCase())}</span>`;
   panel.hidden = false;
   panel.innerHTML = `
     <h2>conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
@@ -148,13 +131,50 @@ function renderConflict(pair) {
       ${renderConflictSide(rejected)}
       <span class="versus">vs</span>
       ${renderConflictSide(adopted)}
-    </div>
-  `;
+    </div>`;
+}
+
+// ── views ─────────────────────────────────────────────────────────────────────
+
+function switchTab(name) {
+  $$(".tab").forEach((t) => t.classList.toggle("active", t.dataset.view === name));
+  $$(".app-view").forEach((p) => p.classList.toggle("active", p.dataset.panel === name));
+}
+
+function renderResults() {
+  state.results = searchDecisions(state.decisions, state.query);
+  $("[data-query-input]").value = state.query;
+  $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
+  $("[data-decision-grid]").innerHTML = state.results.map(renderDecisionCard).join("");
+  renderConflict(findConflict(state.results));
+}
+
+function renderSaved() {
+  const items = state.decisions.filter((d) => state.saved.has(d.id));
+  $("[data-saved-grid]").innerHTML = items.map(renderDecisionCard).join("");
+  $("[data-saved-empty]").style.display = items.length ? "none" : "block";
+  $("[data-export-saved]").hidden = items.length === 0;
+}
+
+function renderTopics() {
+  const grouped = state.decisions.reduce((acc, d) => {
+    (acc[d.topic] ??= []).push(d);
+    return acc;
+  }, {});
+
+  $("[data-topics-content]").innerHTML = Object.entries(grouped)
+    .map(
+      ([topic, decisions]) => `
+        <section class="topic-group">
+          <h3 class="topic-label">${escapeHtml(topic)}</h3>
+          <div class="decision-grid">${decisions.map(renderDecisionCard).join("")}</div>
+        </section>`
+    )
+    .join("");
 }
 
 function renderDetail(decision) {
-  const conflicts = findConflictsFor(decision, state.decisions);
-  const others = conflicts.map(([rej, adp]) => (rej.id === decision.id ? adp : rej));
+  const others = findConflictsFor(decision, state.decisions).map(([r, a]) => (r.id === decision.id ? a : r));
 
   const conflictsHtml = others.length
     ? `<div class="detail-conflicts">
@@ -173,18 +193,16 @@ function renderDetail(decision) {
     </div>
     <h2 class="detail-title">${escapeHtml(decision.title)}</h2>
     <dl class="detail-body">
-      <dt>contexto</dt>
-      <dd>${escapeHtml(decision.context)}</dd>
-      <dt>razao</dt>
-      <dd>${escapeHtml(decision.reason)}</dd>
+      <dt>contexto</dt><dd>${escapeHtml(decision.context)}</dd>
+      <dt>razao</dt><dd>${escapeHtml(decision.reason)}</dd>
     </dl>
     <div class="detail-tags">${decision.tags.map((t) => `<span class="chip">${escapeHtml(t)}</span>`).join("")}</div>
     <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
       ver fonte → ${escapeHtml(new URL(decision.sourceUrl).hostname)}
     </a>
-    ${conflictsHtml}
-  `;
+    ${conflictsHtml}`;
 
+  switchTab("consultar");
   $("[data-decision-grid]").hidden = true;
   $("[data-conflict-panel]").hidden = true;
   $("[data-result-meta]").hidden = true;
@@ -198,31 +216,49 @@ function closeDetail() {
   renderConflict(findConflict(state.results));
 }
 
-function renderResults() {
-  state.results = searchDecisions(state.decisions, state.query);
-  $("[data-query-input]").value = state.query;
-  $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
-  $("[data-decision-grid]").innerHTML = state.results.map(renderDecisionCard).join("");
-  renderConflict(findConflict(state.results));
-}
-
-function renderSaved() {
-  const savedItems = state.decisions.filter((decision) => state.saved.has(decision.id));
-  $("[data-saved-grid]").innerHTML = savedItems.map(renderDecisionCard).join("");
-  $("[data-saved-empty]").style.display = savedItems.length ? "none" : "block";
-}
-
 function renderLoadError(error) {
-  const message = escapeHtml(error.message);
   $("[data-result-count]").textContent = "erro ao carregar dados";
-  $("[data-decision-grid]").innerHTML = `<p class="empty-state">${message}</p>`;
+  $("[data-decision-grid]").innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
+}
+
+// ── URL compartilhável ────────────────────────────────────────────────────────
+
+function readHashQuery() {
+  if (!location.hash.startsWith("#q=")) return null;
+  return decodeURIComponent(location.hash.slice(3).replace(/\+/g, " "));
 }
 
 function setQuery(query) {
   state.query = query;
   renderResults();
-  location.hash = "app";
+  history.replaceState(null, "", "#q=" + encodeURIComponent(query));
+  document.getElementById("app").scrollIntoView({ behavior: "smooth" });
 }
+
+// ── exportar salvos ───────────────────────────────────────────────────────────
+
+function exportSavedAsMarkdown() {
+  const items = state.decisions.filter((d) => state.saved.has(d.id));
+  if (!items.length) return;
+
+  const lines = ["# Decisões salvas — Arbiter\n"];
+  for (const d of items) {
+    lines.push(`## ${d.title} — ${d.company} (${d.year})\n`);
+    lines.push(`**Tópico:** ${d.topic}  `);
+    lines.push(`**Veredicto:** ${verdictLabel(d.verdict)}  `);
+    lines.push(`**Contexto:** ${d.context}  `);
+    lines.push(`**Razão:** ${d.reason}  `);
+    lines.push(`**Tags:** ${d.tags.join(", ")}  `);
+    lines.push(`**Fonte:** ${d.sourceUrl}\n`);
+    lines.push("---\n");
+  }
+
+  const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/markdown" }));
+  Object.assign(document.createElement("a"), { href: url, download: "arbiter-salvos.md" }).click();
+  URL.revokeObjectURL(url);
+}
+
+// ── events ────────────────────────────────────────────────────────────────────
 
 function bindSearch(formSelector) {
   $(formSelector).addEventListener("submit", (event) => {
@@ -238,7 +274,7 @@ function bindEvents() {
 
   document.addEventListener("click", (event) => {
     const chip = event.target.closest("[data-query]");
-    if (chip) setQuery(chip.dataset.query);
+    if (chip) { setQuery(chip.dataset.query); return; }
 
     const saveButton = event.target.closest("[data-save]");
     if (saveButton) {
@@ -247,41 +283,48 @@ function bindEvents() {
       localStorage.setItem("arbiter.saved", JSON.stringify([...state.saved]));
       renderResults();
       renderSaved();
+      return;
     }
 
     const conflictButton = event.target.closest("[data-conflict-for]");
     if (conflictButton) {
-      const decision = state.decisions.find((item) => item.id === conflictButton.dataset.conflictFor);
+      const decision = state.decisions.find((d) => d.id === conflictButton.dataset.conflictFor);
       if (!decision) return;
-      const pair = findConflict([decision, ...state.decisions]);
-      renderConflict(pair);
+      switchTab("consultar");
+      renderConflict(findConflict([decision, ...state.decisions]));
       $("[data-conflict-panel]").scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-
-    if (event.target.closest("[data-close-detail]")) {
-      closeDetail();
       return;
     }
+
+    if (event.target.closest("[data-close-detail]")) { closeDetail(); return; }
+
+    if (event.target.closest("[data-export-saved]")) { exportSavedAsMarkdown(); return; }
 
     const card = event.target.closest("[data-detail-for]");
     if (card && !event.target.closest("[data-save], [data-conflict-for], a")) {
       const decision = state.decisions.find((d) => d.id === card.dataset.detailFor);
       if (decision) renderDetail(decision);
+      return;
     }
 
     const tab = event.target.closest("[data-view]");
     if (tab) {
-      $$(".tab").forEach((item) => item.classList.toggle("active", item === tab));
-      $$(".app-view").forEach((panel) => panel.classList.toggle("active", panel.dataset.panel === tab.dataset.view));
+      switchTab(tab.dataset.view);
       if (tab.dataset.view === "salvos") renderSaved();
+      if (tab.dataset.view === "topicos") renderTopics();
     }
   });
 }
+
+// ── init ──────────────────────────────────────────────────────────────────────
 
 async function init() {
   renderChips("[data-chip-row]");
   renderChips("[data-app-chips]");
   bindEvents();
+
+  const hashQuery = readHashQuery();
+  if (hashQuery) state.query = hashQuery;
 
   try {
     const [rawDecisions, sources] = await Promise.all([loadJson("data/decisions.json"), loadJson("data/sources.json")]);

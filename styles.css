@@ -702,6 +702,30 @@ input::placeholder {
   cursor: pointer;
 }
 
+.salvos-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.salvos-header h2 {
+  margin-bottom: 0;
+}
+
+.topic-group {
+  margin-bottom: 40px;
+}
+
+.topic-label {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  margin-bottom: 14px;
+  text-transform: uppercase;
+}
+
 .sr-only {
   height: 1px;
   margin: -1px;

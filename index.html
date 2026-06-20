@@ -112,6 +112,7 @@
           <div class="app-tabs" role="tablist" aria-label="secoes do app">
             <button class="tab active" type="button" data-view="consultar">consultar</button>
             <button class="tab" type="button" data-view="salvos">salvos</button>
+            <button class="tab" type="button" data-view="topicos">tópicos</button>
             <button class="tab" type="button" data-view="fontes">fontes</button>
           </div>
         </header>
@@ -136,9 +137,17 @@
         </div>
 
         <div class="app-view" data-panel="salvos">
-          <h2>decisoes salvas</h2>
+          <div class="salvos-header">
+            <h2>decisoes salvas</h2>
+            <button class="ghost-button" type="button" data-export-saved hidden>exportar .md</button>
+          </div>
           <div class="decision-grid" data-saved-grid></div>
           <p class="empty-state" data-saved-empty>nenhuma decisao salva ainda.</p>
+        </div>
+
+        <div class="app-view" data-panel="topicos">
+          <h2>tópicos</h2>
+          <div data-topics-content></div>
         </div>
 
         <div class="app-view" data-panel="fontes">

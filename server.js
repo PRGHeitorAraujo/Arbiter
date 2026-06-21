@@ -33,6 +33,14 @@ const server = http.createServer((req, res) => {
 
   fs.readFile(filePath, (error, data) => {
     if (error) {
+      // SPA fallback: paths without a static file extension are client-side routes
+      if (!path.extname(requestedPath)) {
+        fs.readFile(path.join(root, "index.html"), (_err, html) => {
+          if (_err) { send(res, 404, "Not found", { "content-type": "text/plain; charset=utf-8" }); return; }
+          send(res, 200, html, { "content-type": "text/html; charset=utf-8" });
+        });
+        return;
+      }
       send(res, 404, "Not found", { "content-type": "text/plain; charset=utf-8" });
       return;
     }

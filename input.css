@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.orbit-1 { animation: float 3.6s ease-in-out infinite; }
+.orbit-2 { animation: float 3.6s ease-in-out infinite 0.7s; }
+.orbit-3 { animation: float 3.6s ease-in-out infinite 1.4s; }
+.orbit-4 { animation: float 3.6s ease-in-out infinite 2.1s; }
+
+.card-appear { animation: fadeInUp 0.18s ease both; }
+
+.tab.active { background: white; color: #232323; }
+.app-view { display: none; }
+.app-view.active { display: block; }
+
+.detail-body {
+  display: grid;
+  gap: 14px 28px;
+  grid-template-columns: auto 1fr;
+  margin: 0 0 22px;
+}
+
+/* modal */
+[data-modal-overlay] {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+[data-modal-overlay].open {
+  display: flex;
+  animation: overlayIn 0.15s ease both;
+}
+[data-modal-overlay].open [data-modal-card] {
+  animation: modalIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes overlayIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes overlayOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
+@keyframes modalIn {
+  from { opacity: 0; transform: scale(0.96) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes modalOut {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.96) translateY(10px); }
+}
+
+[data-modal-overlay].closing {
+  animation: overlayOut 0.2s ease both;
+  pointer-events: none;
+}
+[data-modal-overlay].closing [data-modal-card] {
+  animation: modalOut 0.16s ease both;
+}

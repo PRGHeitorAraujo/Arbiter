@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arbiter — design unificado</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: {
+      brand: "#534ab7", "brand-light": "#edeaff", ink: "#232323",
+      muted: "#85827c", panel: "#f0eee8", line: "#dfdcd4", bg: "#faf9f6",
+    }, fontFamily: { sans: ["Inter","ui-sans-serif","system-ui","sans-serif"] } } },
+  };
+</script>
+<style> body { background:#faf9f6; color:#232323; } </style>
+</head>
+<body class="font-sans">
+
+  <div class="bg-[#534ab7] text-white text-center text-xs font-bold py-1.5">
+    mockup — design único combinando as 3 ideias (explorar por tópico + busca direta + lista densa com filtros fixos)
+  </div>
+
+  <header class="flex items-center justify-between max-w-[1200px] mx-auto min-h-[68px] px-4 border-b border-line">
+    <a class="inline-flex items-center gap-2.5 font-black no-underline" href="#">
+      <svg width="26" height="26" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="7" fill="#534ab7"/>
+        <line x1="16" y1="4" x2="7" y2="26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="16" y1="4" x2="25" y2="26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="4" y1="17" x2="28" y2="17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>arbiter</span>
+    </a>
+    <nav class="flex gap-7 text-muted text-[0.88rem] font-bold">
+      <a class="hover:text-ink" href="#">fontes</a>
+      <a class="hover:text-ink" href="#">docs</a>
+    </nav>
+  </header>
+
+  <!-- HERO: busca direta + tópicos como atalho, na mesma seção -->
+  <section class="max-w-[1000px] mx-auto px-4 pt-10 pb-7 text-center">
+    <h1 class="text-[clamp(1.6rem,3.6vw,2.2rem)] font-black mb-6 leading-tight">descreva seu contexto, ou explore por tópico</h1>
+
+    <form id="search-form" class="grid gap-3 grid-cols-[minmax(0,1fr)_auto] mb-6 max-w-[700px] mx-auto">
+      <input id="query" type="search" placeholder="ex: fila de mensagens, time pequeno, baixa complexidade..."
+        class="bg-white border border-[#ccc8bd] rounded-lg text-ink font-bold min-h-[50px] outline-none px-5 w-full shadow-sm focus:border-brand focus:shadow-[0_0_0_4px_rgba(83,74,183,0.12)]" />
+      <button class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[50px] px-6 bg-brand text-white hover:bg-[#4540a0]" type="submit">buscar</button>
+    </form>
+
+    <div class="grid gap-3 grid-cols-4 max-w-[700px] mx-auto" id="topic-grid"></div>
+  </section>
+
+  <!-- APP: sidebar de filtros fixa + lista densa com conflito inline -->
+  <div class="max-w-[1200px] mx-auto px-4 pb-20 grid gap-6" style="grid-template-columns:220px 1fr" id="app-area">
+
+    <aside class="self-start sticky top-6">
+      <p class="text-[0.72rem] font-black tracking-[0.08em] text-muted uppercase mb-2">tópico</p>
+      <div class="flex flex-col gap-1.5 mb-5" id="topic-list"></div>
+
+      <p class="text-[0.72rem] font-black tracking-[0.08em] text-muted uppercase mb-2">decisão</p>
+      <div class="flex flex-col gap-1.5" id="verdict-list"></div>
+
+      <button id="clear-filters" class="mt-5 text-[0.78rem] font-black text-muted hover:text-ink">limpar filtros</button>
+    </aside>
+
+    <main>
+      <div class="flex items-center justify-between mb-3">
+        <strong class="text-[#6f6b64] font-bold" id="result-count"></strong>
+        <span id="conflict-pill"></span>
+      </div>
+      <div class="flex flex-col gap-2" id="list"></div>
+    </main>
+  </div>
+
+<script>
+const TOPIC_ICON = {
+  "mensageria": "M2 9h5M11 9h5M6 5.5L2 9l4 3.5M12 5.5l4 3.5-4 3.5",
+  "banco de dados": "M10 3H4a1 1 0 00-1 1v10a1 1 0 001 1h10a1 1 0 001-1V8",
+  "arquitetura": "M9 2v5M9 11v5M3 9h4M11 9h4",
+  "linguagem": "M9 2v14M2 9h14",
+};
+
+const DECISIONS = [
+  { empresa:"Dagster", topic:"mensageria", verdict:"rejected", title:"rejeitou Kafka", context:"startup pequena, time enxuto, logs near-real-time", color:"#edeaff", tone:"#534ab7" },
+  { empresa:"Disney+ Hotstar", topic:"mensageria", verdict:"adopted", title:"adotou Kafka", context:"50M usuarios simultaneos em evento ao vivo", color:"#dcf5ec", tone:"#14866d" },
+  { empresa:"Shopify", topic:"mensageria", verdict:"kept", title:"manteve RabbitMQ", context:"workloads variados, custo alto de migracao completa", color:"#fde8f0", tone:"#b44d70" },
+  { empresa:"LinkedIn", topic:"mensageria", verdict:"adopted", title:"criou Kafka internamente", context:"pipeline em tempo real, nenhuma ferramenta aguentava o volume", color:"#e8f0f8", tone:"#0077b5" },
+  { empresa:"Discord", topic:"banco de dados", verdict:"adopted", title:"adotou Cassandra", context:"100M mensagens por dia, MongoDB sem escalar", color:"#e8edff", tone:"#3d5af1" },
+  { empresa:"Uber", topic:"banco de dados", verdict:"rejected", title:"saiu do Postgres para MySQL", context:"escala global, alta taxa de escrita", color:"#eaf5de", tone:"#5a8b2d" },
+  { empresa:"Notion", topic:"banco de dados", verdict:"adopted", title:"shardeou o Postgres", context:"bilhoes de linhas, evitou migrar para NoSQL", color:"#f0f0eb", tone:"#37352f" },
+  { empresa:"Stack Overflow", topic:"banco de dados", verdict:"rejected", title:"rejeitou NoSQL", context:"bilhoes de page views, manteve SQL Server tunado", color:"#fff3e0", tone:"#b35a00" },
+  { empresa:"Basecamp", topic:"arquitetura", verdict:"rejected", title:"recusou microservices", context:"produto maduro, time pequeno, pressao da industria", color:"#e8f5e8", tone:"#2d6a2d" },
+  { empresa:"Airbnb", topic:"arquitetura", verdict:"adopted", title:"migrou monolito para SOA", context:"time crescendo rapido, dominios acoplados", color:"#ffe8ef", tone:"#cc0050" },
+  { empresa:"Amazon", topic:"arquitetura", verdict:"adopted", title:"mandatou APIs entre times", context:"monolito incontrolavel, deploys lentos", color:"#fff8e0", tone:"#a07000" },
+  { empresa:"Shopify", topic:"arquitetura", verdict:"rejected", title:"criou monolito modular", context:"centenas de engenheiros, pressao para quebrar em microservices", color:"#fde8f0", tone:"#b44d70" },
+  { empresa:"Discord", topic:"linguagem", verdict:"rejected", title:"saiu de Go para Rust", context:"GC do Go causava spikes de latencia", color:"#e8edff", tone:"#3d5af1" },
+  { empresa:"Dropbox", topic:"linguagem", verdict:"adopted", title:"migrou Python para Go", context:"GIL limitando uso de CPU multi-core", color:"#e8f2ff", tone:"#0061ff" },
+];
+const TAG = { adopted:"bg-[#e6f4df] text-[#47771d]", rejected:"bg-[#fff3d8] text-[#9c6414]", kept:"bg-[#e8f1ff] text-[#2f679b]" };
+const LABEL = { adopted:"adotou", rejected:"rejeitou", kept:"manteve" };
+
+const state = { topic:null, verdict:null, q:"" };
+
+function isConflict(a,b){ return a!==b && a.topic===b.topic && a.verdict!==b.verdict && [a.verdict,b.verdict].includes("adopted") && [a.verdict,b.verdict].includes("rejected"); }
+
+function countConflicts(topic){
+  const pool = DECISIONS.filter(d => d.topic === topic);
+  let n = 0;
+  pool.forEach(d => { if (pool.some(o => isConflict(d,o))) n++; });
+  return Math.floor(n/2);
+}
+
+function filtered(){
+  return DECISIONS.filter(d => {
+    if (state.topic && d.topic !== state.topic) return false;
+    if (state.verdict && d.verdict !== state.verdict) return false;
+    if (state.q && !(d.title+d.context+d.empresa).toLowerCase().includes(state.q.toLowerCase())) return false;
+    return true;
+  });
+}
+
+function renderTopicGrid(){
+  document.getElementById("topic-grid").innerHTML = [...new Set(DECISIONS.map(d=>d.topic))].map(t => {
+    const count = DECISIONS.filter(d=>d.topic===t).length;
+    const conflicts = countConflicts(t);
+    const active = state.topic === t;
+    return `<button data-topic-card="${t}" class="bg-white border ${active ? "border-brand ring-2 ring-brand/20" : "border-line"} rounded-xl shadow-sm p-4 text-center hover:shadow-md hover:-translate-y-0.5 transition-all">
+      <div class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-brand-light text-brand mb-2">
+        <svg width="14" height="14" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="${TOPIC_ICON[t]}" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </div>
+      <div class="font-bold text-[0.84rem] mb-0.5">${t}</div>
+      <div class="text-muted text-[0.72rem] font-bold">${count} decisoes${conflicts ? ` · ${conflicts} conflito${conflicts>1?"s":""}` : ""}</div>
+    </button>`;
+  }).join("");
+}
+
+function renderSidebar(){
+  document.getElementById("topic-list").innerHTML = [...new Set(DECISIONS.map(d=>d.topic))].map(t =>
+    `<button data-topic-filter="${t}" class="text-left rounded-md text-[0.84rem] font-extrabold px-3 py-1.5 ${state.topic===t ? "bg-brand text-white" : "bg-white border border-line text-muted hover:bg-panel"}">${t}</button>`).join("");
+
+  document.getElementById("verdict-list").innerHTML = ["adopted","rejected","kept"].map(v =>
+    `<button data-verdict-filter="${v}" class="text-left rounded-md text-[0.84rem] font-extrabold px-3 py-1.5 ${state.verdict===v ? "bg-brand text-white" : "bg-white border border-line text-muted hover:bg-panel"}">${LABEL[v]}</button>`).join("");
+}
+
+function renderList(){
+  const list = filtered();
+  document.getElementById("result-count").textContent = list.length + " decisoes";
+  const hasConflict = list.some(d => list.some(o => isConflict(d,o)));
+  document.getElementById("conflict-pill").innerHTML = hasConflict
+    ? `<span class="bg-[#fff1d5] text-[#a0640e] rounded-full inline-flex items-center text-[0.74rem] font-black px-3 py-1">conflito neste filtro</span>` : "";
+
+  document.getElementById("list").innerHTML = list.map(d => {
+    const conflict = list.some(o => isConflict(d,o));
+    return `<article class="bg-white border ${conflict ? "border-[#f0c178]" : "border-line"} rounded-lg px-4 py-3 flex items-center gap-3 hover:bg-[#fafafa]">
+      <span class="rounded-md text-[0.74rem] font-black px-2 py-1 flex-none" style="background:${d.color};color:${d.tone}">${d.empresa}</span>
+      <span class="font-bold text-[0.92rem] flex-none min-w-[180px]">${d.title}</span>
+      <span class="text-muted text-[0.84rem] font-bold flex-1">${d.context}</span>
+      ${conflict ? `<span class="rounded-full text-[0.7rem] font-black px-2 py-1 flex-none bg-[#fff1d5] text-[#a0640e]">conflito</span>` : ""}
+      <span class="rounded-full inline-flex items-center text-[0.74rem] font-black min-h-[22px] px-2.5 flex-none ${TAG[d.verdict]}">${LABEL[d.verdict]}</span>
+    </article>`;
+  }).join("");
+}
+
+function renderAll(){ renderTopicGrid(); renderSidebar(); renderList(); }
+
+document.addEventListener("click", e => {
+  const topicCard = e.target.closest("[data-topic-card]");
+  if (topicCard) {
+    const t = topicCard.dataset.topicCard;
+    state.topic = state.topic === t ? null : t;
+    renderAll();
+    document.getElementById("app-area").scrollIntoView({ behavior:"smooth" });
+    return;
+  }
+  const topicFilter = e.target.closest("[data-topic-filter]");
+  if (topicFilter) { const t = topicFilter.dataset.topicFilter; state.topic = state.topic === t ? null : t; renderAll(); return; }
+
+  const verdictFilter = e.target.closest("[data-verdict-filter]");
+  if (verdictFilter) { const v = verdictFilter.dataset.verdictFilter; state.verdict = state.verdict === v ? null : v; renderAll(); return; }
+
+  if (e.target.closest("#clear-filters")) { state.topic = null; state.verdict = null; state.q = ""; document.getElementById("query").value = ""; renderAll(); return; }
+});
+
+document.getElementById("query").addEventListener("input", e => { state.q = e.target.value; renderList(); });
+document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); renderList(); document.getElementById("app-area").scrollIntoView({ behavior:"smooth" }); });
+
+renderAll();
+</script>
+</body>
+</html>

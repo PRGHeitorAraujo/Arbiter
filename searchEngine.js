@@ -37,6 +37,5 @@ export function searchDecisions(decisions, query) {
   return decisions
     .map((d) => ({ ...d, score: scoreDecision(d, query) }))
     .filter((d) => d.score > 0 || query.trim().length < 3)
-    .sort((a, b) => b.score - a.score || a.company.localeCompare(b.company))
-    .slice(0, 4);
+    .sort((a, b) => b.score - a.score || a.company.localeCompare(b.company));
 }

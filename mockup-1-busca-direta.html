@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Arbiter — mockup 1: busca direta</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: { colors: {
+      brand: "#534ab7", "brand-light": "#edeaff", ink: "#232323",
+      muted: "#85827c", panel: "#f0eee8", line: "#dfdcd4", bg: "#faf9f6",
+    }, fontFamily: { sans: ["Inter","ui-sans-serif","system-ui","sans-serif"] } } },
+  };
+</script>
+<style>
+  body { background:#faf9f6; color:#232323; }
+  .conflict-ring { box-shadow: 0 0 0 2px #f0c178 inset; }
+</style>
+</head>
+<body class="font-sans">
+
+  <div class="bg-[#534ab7] text-white text-center text-xs font-bold py-1.5">
+    mockup de layout — "1. busca direta" — não é o site em produção
+  </div>
+
+  <header class="flex items-center justify-between max-w-[1000px] mx-auto min-h-[72px] px-4 border-b border-line">
+    <a class="inline-flex items-center gap-2.5 font-black no-underline" href="#">
+      <svg width="28" height="28" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect width="32" height="32" rx="7" fill="#534ab7"/>
+        <line x1="16" y1="4" x2="7" y2="26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="16" y1="4" x2="25" y2="26" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="4" y1="17" x2="28" y2="17" stroke="white" stroke-width="2" stroke-linecap="round"/>
+      </svg>
+      <span>arbiter</span>
+    </a>
+    <nav class="flex gap-7 text-muted text-[0.9rem] font-bold">
+      <a class="hover:text-ink" href="#">fontes</a>
+      <a class="hover:text-ink" href="#">docs</a>
+    </nav>
+  </header>
+
+  <!-- a busca É a hero, sem landing separada -->
+  <section class="max-w-[760px] mx-auto px-4 pt-12 pb-8 text-center">
+    <h1 class="text-[clamp(1.7rem,4vw,2.3rem)] font-black mb-6 leading-tight">descreva seu contexto de engenharia</h1>
+    <form class="grid gap-3 grid-cols-[minmax(0,1fr)_auto] mb-4" id="search-form">
+      <input id="query" type="search" value="fila de mensagens, time pequeno, baixa complexidade"
+        class="bg-white border border-[#ccc8bd] rounded-lg text-ink font-bold min-h-[52px] outline-none px-5 w-full shadow-sm focus:border-brand focus:shadow-[0_0_0_4px_rgba(83,74,183,0.12)]" />
+      <button class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[52px] px-7 bg-brand text-white hover:bg-[#4540a0]" type="submit">buscar</button>
+    </form>
+    <div class="flex flex-wrap gap-2 justify-center" id="chips"></div>
+  </section>
+
+  <!-- resultados aparecem direto, sem trocar de "view" -->
+  <section class="max-w-[1000px] mx-auto px-4 pb-20">
+    <div class="flex items-center justify-between mb-4">
+      <strong class="text-[#6f6b64] font-bold" id="result-count"></strong>
+      <div class="flex gap-1.5" id="topic-filter"></div>
+    </div>
+    <div class="grid gap-4 grid-cols-2" id="grid"></div>
+  </section>
+
+<script>
+const DECISIONS = [
+  { empresa:"Dagster", topic:"mensageria", verdict:"rejected", title:"rejeitou Kafka", context:"startup pequena, time enxuto, logs near-real-time", reason:"custo operacional nao se justificava; Postgres ja resolvia com menos complexidade.", color:"#edeaff", tone:"#534ab7" },
+  { empresa:"Disney+ Hotstar", topic:"mensageria", verdict:"adopted", title:"adotou Kafka", context:"50M usuarios simultaneos em evento ao vivo", reason:"alto throughput e baixa latencia eram requisito central.", color:"#dcf5ec", tone:"#14866d" },
+  { empresa:"Shopify", topic:"mensageria", verdict:"kept", title:"manteve RabbitMQ", context:"workloads variados, custo alto de migracao completa", reason:"complexidade de Kafka nao compensava em todos os fluxos.", color:"#fde8f0", tone:"#b44d70" },
+  { empresa:"LinkedIn", topic:"mensageria", verdict:"adopted", title:"criou Kafka internamente", context:"pipeline de dados em tempo real, nenhuma ferramenta aguentava o volume", reason:"throughput de centenas de MB/s com retencao e replay.", color:"#e8f0f8", tone:"#0077b5" },
+  { empresa:"Basecamp", topic:"arquitetura", verdict:"rejected", title:"recusou microservices", context:"produto maduro, time pequeno, pressao da industria", reason:"monolito Rails com boas abstracoes entrega mais velocidade.", color:"#e8f5e8", tone:"#2d6a2d" },
+  { empresa:"Airbnb", topic:"arquitetura", verdict:"adopted", title:"migrou monolito para SOA", context:"time crescendo rapido, dominios acoplados", reason:"servicos proprios permitiram times autonomos com deploys independentes.", color:"#ffe8ef", tone:"#cc0050" },
+  { empresa:"Discord", topic:"banco de dados", verdict:"adopted", title:"adotou Cassandra", context:"100M mensagens por dia, MongoDB nao escalava horizontalmente", reason:"escrita linear com alta disponibilidade encaixou no padrao de acesso.", color:"#e8edff", tone:"#3d5af1" },
+  { empresa:"Uber", topic:"banco de dados", verdict:"rejected", title:"saiu do Postgres para MySQL", context:"escala global, alta taxa de escrita", reason:"WAL do Postgres replicava paginas inteiras mesmo para updates pequenos.", color:"#eaf5de", tone:"#5a8b2d" },
+  { empresa:"Discord", topic:"linguagem", verdict:"rejected", title:"saiu de Go para Rust", context:"GC do Go causava spikes de latencia a cada 2 minutos", reason:"Rust sem GC entregou latencia consistente e memoria 10x menor.", color:"#e8edff", tone:"#3d5af1" },
+  { empresa:"Dropbox", topic:"linguagem", verdict:"adopted", title:"migrou Python para Go", context:"GIL limitando uso de CPU multi-core", reason:"concorrencia nativa sem GIL, performance proxima de C.", color:"#e8f2ff", tone:"#0061ff" },
+];
+const TAG = { adopted:"bg-[#e6f4df] text-[#47771d]", rejected:"bg-[#fff3d8] text-[#9c6414]", kept:"bg-[#e8f1ff] text-[#2f679b]" };
+const LABEL = { adopted:"adotou", rejected:"rejeitou", kept:"manteve" };
+
+function isConflict(a,b){ return a!==b && a.topic===b.topic && a.verdict!==b.verdict && [a.verdict,b.verdict].includes("adopted") && [a.verdict,b.verdict].includes("rejected"); }
+
+function render(list){
+  document.getElementById("result-count").textContent = list.length + " decisoes encontradas";
+  document.getElementById("grid").innerHTML = list.map(d => {
+    const conflict = list.some(o => isConflict(d,o));
+    return `<article class="bg-white border border-line rounded-xl shadow-sm px-6 pt-6 pb-4 ${conflict ? "conflict-ring" : ""}">
+      <div class="flex items-center gap-2.5 mb-3 flex-wrap">
+        <span class="rounded-md text-[0.78rem] font-black px-2.5 py-1.5" style="background:${d.color};color:${d.tone}">${d.empresa}</span>
+        <span class="rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 ml-auto ${TAG[d.verdict]}">${LABEL[d.verdict]}</span>
+        ${conflict ? `<span class="rounded-full inline-flex items-center text-[0.74rem] font-black min-h-[22px] px-2.5 bg-[#fff1d5] text-[#a0640e]">conflito no mesmo topico</span>` : ""}
+      </div>
+      <h3 class="text-[1.05rem] font-bold mb-1.5">${d.title}</h3>
+      <p class="text-muted text-[0.92rem] font-bold leading-snug m-0">${d.context} — ${d.reason}</p>
+    </article>`;
+  }).join("");
+}
+
+function applyFilter(topic){
+  const base = topic ? DECISIONS.filter(d => d.topic === topic) : DECISIONS;
+  render(base);
+  document.querySelectorAll("[data-topic]").forEach(b => b.classList.toggle("bg-brand", b.dataset.topic === topic));
+}
+
+document.getElementById("topic-filter").innerHTML = [...new Set(DECISIONS.map(d=>d.topic))]
+  .map(t => `<button data-topic="${t}" class="rounded-full border border-line text-[0.78rem] font-extrabold px-3 py-1 hover:bg-panel" onclick="applyFilter(this.dataset.topic === window.__active ? null : this.dataset.topic); window.__active = this.dataset.topic === window.__active ? null : this.dataset.topic">${t}</button>`).join("");
+
+document.getElementById("chips").innerHTML = ["kafka vs rabbitmq","monolito vs microsservicos","postgres vs mysql","go vs rust"]
+  .map(q => `<button class="bg-white border border-[#dedbd2] rounded-full text-[#8b877e] text-[0.8rem] font-extrabold px-4 py-1.5 hover:bg-panel" onclick="document.getElementById('query').value=this.textContent">${q}</button>`).join("");
+
+document.getElementById("search-form").addEventListener("submit", e => { e.preventDefault(); render(DECISIONS); });
+
+render(DECISIONS);
+</script>
+</body>
+</html>

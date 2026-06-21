@@ -55,7 +55,6 @@
         <a class="hover:text-[#232323] transition-colors duration-150" href="#sources">fontes</a>
         <a class="hover:text-[#232323] transition-colors duration-150" href="files/arbiter_spec.pdf">docs</a>
       </nav>
-      <a class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[42px] px-[22px] bg-white border border-[#d8d5ce] shadow-sm hover:bg-[#f0eee8] transition-colors duration-150" href="#app">entrar no app</a>
     </header>
 
     <main>
@@ -101,7 +100,7 @@
       <!-- ── FEATURES ──────────────────────────────────────────────────────── -->
       <section class="my-16 mx-auto max-w-[1100px] px-4 text-center" id="how" aria-labelledby="diff-title">
         <p class="text-[#534ab7] text-[0.83rem] font-black tracking-[0.08em] uppercase mb-[22px] mt-0">diferenciais</p>
-        <h2 id="diff-title" class="text-[clamp(1.7rem,3.4vw,2.34rem)] leading-[1.12] font-black mb-9 mt-0">nao e mais um chatbot de arquitetura</h2>
+        <h2 id="diff-title" class="text-[clamp(1.7rem,3.4vw,2.34rem)] leading-[1.12] font-black mb-9 mt-0">Nenhuma ia aqui decide por voce — empresas reais ja decidiram</h2>
         <div class="grid gap-[18px] grid-cols-3 text-left">
 
           <article class="bg-white border border-[#dfdcd4] rounded-xl shadow-sm p-7 hover:shadow-md transition-shadow duration-150">
@@ -148,16 +147,6 @@
         </div>
       </section>
 
-      <!-- ── CTA ──────────────────────────────────────────────────────────── -->
-      <section class="max-w-[1100px] mx-auto px-4 border-t border-[#dfdcd4] mt-16 pt-[52px] pb-[60px] text-center" aria-labelledby="cta-title">
-        <h2 id="cta-title" class="text-[clamp(1.7rem,3.4vw,2.34rem)] leading-[1.12] font-black mb-2 mt-0">pronto para consultar decisoes reais?</h2>
-        <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] mb-7 mt-0">sem cadastro. sem paywall. so contexto e decisoes que existiram de verdade.</p>
-        <a class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[42px] px-[22px] bg-[#534ab7] border border-[#534ab7] text-white min-w-[178px] hover:bg-[#4540a0] transition-colors duration-150" href="#app">abrir o arbiter</a>
-      </section>
-
-      <!-- ── DIVIDER ───────────────────────────────────────────────────────── -->
-      <div class="border-t-2 border-dashed border-[#d5d1c8] text-[#b5b0a6] text-[0.86rem] font-extrabold py-[18px] text-center">app principal abaixo</div>
-
       <!-- ── APP SHELL ─────────────────────────────────────────────────────── -->
       <section class="max-w-[1100px] mx-auto px-4 pt-7 pb-20" id="app" aria-labelledby="app-title">
 
@@ -194,13 +183,20 @@
             <button class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[48px] px-[22px] bg-[#534ab7] border border-[#534ab7] text-white min-w-[178px] hover:bg-[#4540a0] transition-colors duration-150" type="submit">buscar decisoes</button>
           </form>
           <div class="flex flex-wrap gap-2.5 mt-3.5" data-app-chips></div>
+          <div class="flex flex-wrap items-center gap-2 mt-2 min-h-[28px]" data-history-row></div>
           <div class="border-t border-[#dfdcd4] flex flex-col gap-2.5 mt-[18px] pt-4" data-filter-bar></div>
           <div class="flex items-center justify-between my-6" data-result-meta>
             <strong class="text-[#6f6b64] font-bold" data-result-count></strong>
-            <span data-conflict-pill></span>
+            <div class="flex items-center gap-3">
+              <button class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#dfdcd4] bg-white text-[#85827c] hover:bg-[#f0eee8] transition-colors" type="button" data-view-toggle title="modo compacto"></button>
+              <span data-conflict-pill></span>
+            </div>
           </div>
           <div data-comparison></div>
           <div class="grid gap-4 grid-cols-2" data-decision-grid></div>
+          <div class="text-center mt-6" data-ver-mais-wrap>
+            <button class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[40px] px-6 bg-white border border-[#dfdcd4] text-[#534ab7] hover:bg-[#edeaff] transition-colors text-[0.9rem]" type="button" data-ver-mais hidden></button>
+          </div>
           <div data-conflict-panel hidden></div>
         </div>
 
@@ -231,11 +227,11 @@
 
     <!-- ── MODAL ────────────────────────────────────────────────────────── -->
     <div class="fixed inset-0 z-50 p-4 bg-black/40 backdrop-blur-sm" data-modal-overlay>
-      <div class="bg-white rounded-2xl w-full max-w-[580px] max-h-[90vh] overflow-y-auto shadow-2xl mx-auto" style="margin-top:5vh" data-modal-card>
+      <div class="bg-white rounded-2xl w-full max-w-[700px] max-h-[95vh] overflow-y-auto shadow-2xl mx-auto" style="margin-top:2vh" data-modal-card>
         <!-- header com cor da empresa -->
-        <div class="relative overflow-hidden rounded-t-2xl px-8 pt-8 pb-7 flex flex-col justify-end" style="min-height:140px" data-modal-header>
+        <div class="relative overflow-hidden rounded-t-2xl px-8 pt-7 pb-6 flex flex-col justify-end" style="min-height:110px" data-modal-header>
           <!-- inicial decorativa de fundo -->
-          <span class="absolute right-2 -bottom-5 font-black leading-none select-none pointer-events-none" style="font-size:190px;opacity:0.12" data-modal-initial></span>
+          <span class="absolute right-2 -bottom-4 font-black leading-none select-none pointer-events-none" style="font-size:160px;opacity:0.12" data-modal-initial></span>
           <!-- fechar -->
           <button class="absolute top-4 right-4 z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-black bg-black/10 hover:bg-black/20 transition-colors" type="button" data-modal-close aria-label="fechar">✕</button>
           <!-- titulo -->
@@ -243,6 +239,26 @@
         </div>
         <!-- corpo -->
         <div class="px-8 py-7 flex flex-col gap-5" data-modal-body></div>
+      </div>
+    </div>
+
+    <!-- ── COMMAND PALETTE ──────────────────────────────────────────────── -->
+    <div class="fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm items-start justify-center pt-[15vh]" data-palette-overlay style="display:none">
+      <div class="bg-white rounded-2xl w-full max-w-[560px] shadow-2xl overflow-hidden mx-4">
+        <div class="flex items-center gap-3 px-5 py-4 border-b border-[#dfdcd4]">
+          <svg class="text-[#85827c] flex-none" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.8"/>
+            <path d="M12 12l3.5 3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+          </svg>
+          <input type="text" placeholder="buscar decisão..." autocomplete="off" class="flex-1 bg-transparent border-0 outline-none text-[#232323] font-bold text-[1rem] placeholder:text-[#aaa69c]" data-palette-input />
+          <kbd class="text-[#a19d95] text-[0.72rem] font-black bg-[#f0eee8] rounded px-1.5 py-0.5 flex-none">Esc</kbd>
+        </div>
+        <ul class="py-1.5 max-h-[320px] overflow-y-auto m-0 p-0 list-none" data-palette-results></ul>
+        <div class="border-t border-[#dfdcd4] flex items-center gap-4 px-5 py-2.5">
+          <span class="text-[#a19d95] text-[0.72rem] font-black"><kbd class="bg-[#f0eee8] rounded px-1 py-0.5">↑↓</kbd> navegar</span>
+          <span class="text-[#a19d95] text-[0.72rem] font-black"><kbd class="bg-[#f0eee8] rounded px-1 py-0.5">Enter</kbd> abrir</span>
+          <span class="text-[#a19d95] text-[0.72rem] font-black"><kbd class="bg-[#f0eee8] rounded px-1 py-0.5">Esc</kbd> fechar</span>
+        </div>
       </div>
     </div>
 

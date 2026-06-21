@@ -6,6 +6,11 @@
   "description": "Buscador de decisões reais de engenharia com conflitos explícitos.",
   "scripts": {
     "dev": "node server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "tailwindcss -i input.css -o styles.css --minify",
+    "watch": "tailwindcss -i input.css -o styles.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.19"
   }
 }

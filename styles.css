@@ -62,12 +62,11 @@ input {
 }
 
 .brand-mark {
-  background: var(--brand);
-  border-radius: 5px;
-  box-shadow: 0 8px 22px rgba(83, 74, 183, 0.24);
   display: inline-block;
-  height: 21px;
-  width: 21px;
+  filter: drop-shadow(0 4px 12px rgba(83, 74, 183, 0.32));
+  flex-shrink: 0;
+  height: 32px;
+  width: 32px;
 }
 
 nav {

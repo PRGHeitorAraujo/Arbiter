@@ -69,11 +69,31 @@ function applyFilters(decisions) {
   });
 }
 
+// ── class constants ───────────────────────────────────────────────────────────
+
+const CHIP = "bg-white border border-[#dedbd2] rounded-full text-[#8b877e] cursor-pointer text-[0.82rem] font-extrabold min-h-[29px] px-[17px] hover:bg-[#f0eee8] transition-colors duration-150";
+const TEXT_BTN = "bg-transparent border-0 text-[#817d74] cursor-pointer text-[0.82rem] font-black p-0 hover:text-[#232323] transition-colors duration-150";
+const PILL = "rounded-md text-[0.78rem] font-black px-2.5 py-1.5";
+const YEAR = "text-[#a19d95] text-[0.82rem] font-extrabold";
+const SRC_LINK = "bg-[#eaf3ff] rounded-lg text-[#4d81b2] inline-flex text-[0.82rem] font-black mt-2 px-3 py-[7px] hover:bg-blue-100 transition-colors";
+
+const TAG = {
+  adopted: "ml-auto rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e6f4df] text-[#47771d]",
+  rejected: "ml-auto rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#fff3d8] text-[#9c6414]",
+  kept:     "ml-auto rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e8f1ff] text-[#2f679b]",
+};
+
+const TAG_FLAT = {
+  adopted: "rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e6f4df] text-[#47771d]",
+  rejected: "rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#fff3d8] text-[#9c6414]",
+  kept:     "rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e8f1ff] text-[#2f679b]",
+};
+
 // ── render helpers ────────────────────────────────────────────────────────────
 
 function renderChips(rootSelector) {
   $(rootSelector).innerHTML = sampleQueries
-    .map((q) => `<button class="chip" type="button" data-query="${escapeHtml(q)}">${escapeHtml(q)}</button>`)
+    .map((q) => `<button class="${CHIP}" type="button" data-query="${escapeHtml(q)}">${escapeHtml(q)}</button>`)
     .join("");
 }
 
@@ -81,9 +101,12 @@ function renderSources(rootSelector) {
   $(rootSelector).innerHTML = state.sources
     .map(
       (s) => `
-        <article class="source-item">
-          <span class="source-dot" style="background:${escapeHtml(s.color)}"></span>
-          <div><strong>${escapeHtml(s.name)}</strong><span>${escapeHtml(s.type)}</span></div>
+        <article class="flex items-center gap-2.5 bg-[#f0eee8] rounded-[7px] min-h-[58px] px-4 py-3">
+          <span class="rounded-full flex-none w-[9px] h-[9px]" style="background:${escapeHtml(s.color)}"></span>
+          <div>
+            <strong class="text-[0.95rem] leading-[1.1] block font-bold">${escapeHtml(s.name)}</strong>
+            <span class="text-[#85827c] text-[0.78rem] font-extrabold block">${escapeHtml(s.type)}</span>
+          </div>
         </article>`
     )
     .join("");
@@ -92,18 +115,18 @@ function renderSources(rootSelector) {
 function renderDecisionCard(decision) {
   const isSaved = state.saved.has(decision.id);
   return `
-    <article class="decision-card" data-detail-for="${escapeHtml(decision.id)}">
-      <div class="card-top">
-        <span class="company-pill" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
-        <span class="year">${escapeHtml(decision.year)}</span>
-        <span class="tag ${escapeHtml(decision.verdict)}">${escapeHtml(verdictLabel(decision.verdict))}</span>
+    <article class="card-appear bg-white border border-[#dfdcd4] rounded-xl shadow-sm cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 px-7 pt-7 pb-[18px]" data-detail-for="${escapeHtml(decision.id)}">
+      <div class="flex items-center gap-2.5 mb-[18px]">
+        <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+        <span class="${YEAR}">${escapeHtml(decision.year)}</span>
+        <span class="${escapeHtml(TAG[decision.verdict] || TAG.kept)}">${escapeHtml(verdictLabel(decision.verdict))}</span>
       </div>
-      <h3>${escapeHtml(decision.title)}</h3>
-      <p>${escapeHtml(decision.reason)}</p>
-      <div class="card-actions">
-        <a class="text-button" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">ver fonte</a>
-        <button class="text-button" type="button" data-conflict-for="${escapeHtml(decision.id)}">ver conflito</button>
-        <button class="text-button ${isSaved ? "saved" : ""}" type="button" data-save="${escapeHtml(decision.id)}">
+      <h3 class="text-[1.12rem] font-bold mb-2 mt-0">${escapeHtml(decision.title)}</h3>
+      <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] min-h-[54px] m-0">${escapeHtml(decision.reason)}</p>
+      <div class="border-t border-[#ece9e2] flex gap-[18px] mt-[18px] pt-[14px]">
+        <a class="${TEXT_BTN}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">ver fonte</a>
+        <button class="${TEXT_BTN}" type="button" data-conflict-for="${escapeHtml(decision.id)}">ver conflito</button>
+        <button class="bg-transparent border-0 cursor-pointer text-[0.82rem] font-black p-0 transition-colors duration-150 ${isSaved ? "text-[#534ab7]" : "text-[#817d74] hover:text-[#232323]"}" type="button" data-save="${escapeHtml(decision.id)}">
           ${isSaved ? "salvo" : "+ salvar"}
         </button>
       </div>
@@ -112,14 +135,14 @@ function renderDecisionCard(decision) {
 
 function renderConflictSide(decision) {
   return `
-    <article class="conflict-side">
-      <div class="card-top">
-        <span class="company-pill" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
-        <span class="year">${escapeHtml(decision.year)}</span>
+    <article class="bg-white rounded-lg p-[22px]">
+      <div class="flex items-center gap-2.5 mb-[18px]">
+        <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+        <span class="${YEAR}">${escapeHtml(decision.year)}</span>
       </div>
-      <h3>${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
-      <p>${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
-      <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(new URL(decision.sourceUrl).hostname)}</a>
+      <h3 class="text-[1.12rem] font-bold mb-2 mt-0">${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
+      <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] m-0">${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
+      <a class="${SRC_LINK}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(new URL(decision.sourceUrl).hostname)}</a>
     </article>`;
 }
 
@@ -132,42 +155,39 @@ function renderConflict(pair) {
     return;
   }
   const [rejected, adopted] = pair;
-  $("[data-conflict-pill]").innerHTML = `<span class="conflict-pill">conflito detectado — ${escapeHtml(rejected.company.toLowerCase())} vs ${escapeHtml(adopted.company.toLowerCase())}</span>`;
+  $("[data-conflict-pill]").innerHTML = `<span class="bg-[#fff1d5] text-[#a0640e] rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3">conflito detectado — ${escapeHtml(rejected.company.toLowerCase())} vs ${escapeHtml(adopted.company.toLowerCase())}</span>`;
   panel.hidden = false;
+  panel.className = "bg-[#f0eee8] border border-[#dfdcd4] rounded-xl mt-7 p-7";
   panel.innerHTML = `
-    <h2>conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
-    <div class="conflict-compare">
+    <h2 class="text-[1.18rem] font-black mb-[22px] mt-0">conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
+    <div class="grid items-center gap-[22px]" style="grid-template-columns:1fr auto 1fr">
       ${renderConflictSide(rejected)}
-      <span class="versus">vs</span>
+      <span class="text-[#9f9a90] text-[0.8rem] font-black text-center">vs</span>
       ${renderConflictSide(adopted)}
     </div>`;
+}
+
+function filterChipCls(isActive, verdict) {
+  const base = "rounded-full cursor-pointer text-[0.78rem] font-extrabold min-h-[26px] px-3 border transition-all duration-100";
+  if (!isActive) return `${base} bg-white border-[#dfdcd4] text-[#85827c]`;
+  const colors = { adopted: "bg-[#1c8a70] border-[#1c8a70]", rejected: "bg-[#a36f15] border-[#a36f15]", kept: "bg-[#2f7db6] border-[#2f7db6]" };
+  return `${base} ${colors[verdict] || "bg-[#232323] border-[#232323]"} text-white`;
 }
 
 function renderFilterBar() {
   const topics = [...new Set(state.decisions.map((d) => d.topic))].sort();
   const verdicts = ["adopted", "rejected", "kept"];
-
   $("[data-filter-bar]").innerHTML = `
-    <div class="filter-row">
-      <span class="filter-label">tópico</span>
-      <div class="filter-chips">
-        ${topics
-          .map(
-            (t) =>
-              `<button class="filter-chip ${state.filters.topic === t ? "active" : ""}" type="button" data-filter="topic" data-value="${escapeHtml(t)}">${escapeHtml(t)}</button>`
-          )
-          .join("")}
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <span class="text-[#85827c] text-[0.75rem] font-black tracking-[0.06em] min-w-[52px] uppercase">tópico</span>
+      <div class="flex flex-wrap gap-1.5">
+        ${topics.map((t) => `<button class="${filterChipCls(state.filters.topic === t, null)}" type="button" data-filter="topic" data-value="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join("")}
       </div>
     </div>
-    <div class="filter-row">
-      <span class="filter-label">decisão</span>
-      <div class="filter-chips">
-        ${verdicts
-          .map(
-            (v) =>
-              `<button class="filter-chip ${state.filters.verdict === v ? "active" : ""} ${v}" type="button" data-filter="verdict" data-value="${escapeHtml(v)}">${escapeHtml(verdictLabel(v))}</button>`
-          )
-          .join("")}
+    <div class="flex items-center gap-2.5 flex-wrap">
+      <span class="text-[#85827c] text-[0.75rem] font-black tracking-[0.06em] min-w-[52px] uppercase">decisão</span>
+      <div class="flex flex-wrap gap-1.5">
+        ${verdicts.map((v) => `<button class="${filterChipCls(state.filters.verdict === v, v)}" type="button" data-filter="verdict" data-value="${escapeHtml(v)}">${escapeHtml(verdictLabel(v))}</button>`).join("")}
       </div>
     </div>`;
 }
@@ -177,27 +197,25 @@ function renderComparisonTable(results) {
   const bySubject = {};
   for (const d of results) (bySubject[d.subject] ??= []).push(d);
   const groups = Object.entries(bySubject).filter(([, ds]) => ds.length >= 2);
-
   if (!groups.length) { container.innerHTML = ""; return; }
-
   container.innerHTML = groups
     .map(
       ([subject, decisions]) => `
-        <div class="comparison-wrap">
-          <p class="comparison-eyebrow">${escapeHtml(subject)} — ${decisions.length} decisões</p>
-          <table class="comparison">
-            <thead><tr><th>empresa</th><th>contexto</th><th>decisão</th></tr></thead>
+        <div class="bg-[#f0eee8] border border-[#dfdcd4] rounded-xl mb-5 overflow-hidden">
+          <p class="border-b border-[#dfdcd4] text-[#85827c] text-[0.78rem] font-black tracking-[0.06em] m-0 px-[18px] py-3 uppercase">${escapeHtml(subject)} — ${decisions.length} decisões</p>
+          <table class="w-full border-collapse">
+            <thead><tr>
+              <th class="text-[#85827c] text-[0.75rem] font-black tracking-[0.05em] px-[18px] py-2.5 text-left uppercase">empresa</th>
+              <th class="text-[#85827c] text-[0.75rem] font-black tracking-[0.05em] px-[18px] py-2.5 text-left uppercase">contexto</th>
+              <th class="text-[#85827c] text-[0.75rem] font-black tracking-[0.05em] px-[18px] py-2.5 text-left uppercase">decisão</th>
+            </tr></thead>
             <tbody>
-              ${decisions
-                .map(
-                  (d) => `
-                <tr class="comparison-row" data-detail-for="${escapeHtml(d.id)}">
-                  <td><span class="company-pill" style="background:${escapeHtml(d.color)};color:${escapeHtml(d.tone)}">${escapeHtml(d.company)}</span></td>
-                  <td class="comparison-context">${escapeHtml(d.context)}</td>
-                  <td><span class="tag ${escapeHtml(d.verdict)}">${escapeHtml(verdictLabel(d.verdict))}</span></td>
-                </tr>`
-                )
-                .join("")}
+              ${decisions.map((d) => `
+                <tr class="bg-white cursor-pointer hover:bg-[#edeaff] transition-colors" data-detail-for="${escapeHtml(d.id)}">
+                  <td class="border-t border-[#dfdcd4] px-[18px] py-3 align-middle"><span class="${PILL}" style="background:${escapeHtml(d.color)};color:${escapeHtml(d.tone)}">${escapeHtml(d.company)}</span></td>
+                  <td class="border-t border-[#dfdcd4] px-[18px] py-3 align-middle text-[#85827c] text-[0.88rem] font-bold max-w-[420px]">${escapeHtml(d.context)}</td>
+                  <td class="border-t border-[#dfdcd4] px-[18px] py-3 align-middle"><span class="${TAG_FLAT[d.verdict] || TAG_FLAT.kept}">${escapeHtml(verdictLabel(d.verdict))}</span></td>
+                </tr>`).join("")}
             </tbody>
           </table>
         </div>`
@@ -235,66 +253,71 @@ function renderTopics() {
     (acc[d.topic] ??= []).push(d);
     return acc;
   }, {});
-
   $("[data-topics-content]").innerHTML = Object.entries(grouped)
     .map(
       ([topic, decisions]) => `
-        <section class="topic-group">
-          <h3 class="topic-label">${escapeHtml(topic)}</h3>
-          <div class="decision-grid">${decisions.map(renderDecisionCard).join("")}</div>
+        <section class="mb-10">
+          <h3 class="text-[#85827c] text-[0.78rem] font-black tracking-[0.08em] mb-3.5 mt-0 uppercase">${escapeHtml(topic)}</h3>
+          <div class="grid gap-4 grid-cols-2">${decisions.map(renderDecisionCard).join("")}</div>
         </section>`
     )
     .join("");
 }
 
 function renderDetail(decision) {
-  const others = findConflictsFor(decision, state.decisions).map(([r, a]) => (r.id === decision.id ? a : r));
+  const header = $("[data-modal-header]");
+  const initial = $("[data-modal-initial]");
+  const title = $("[data-modal-title]");
+  const body = $("[data-modal-body]");
 
+  header.style.background = decision.color;
+  header.style.color = decision.tone;
+  initial.textContent = decision.company.charAt(0).toUpperCase();
+  initial.style.color = decision.tone;
+  title.textContent = decision.title;
+
+  const others = findConflictsFor(decision, state.decisions).map(([r, a]) => (r.id === decision.id ? a : r));
   const conflictsHtml = others.length
-    ? `<div class="detail-conflicts">
-        <h3>decisoes opostas</h3>
-        <div class="conflict-compare">
-          ${others.map(renderConflictSide).join('<span class="versus">vs</span>')}
+    ? `<div class="bg-[#f0eee8] rounded-xl px-6 py-[22px]">
+        <h3 class="text-[#85827c] text-[0.78rem] font-black tracking-[0.08em] uppercase mb-[18px] mt-0">decisoes opostas</h3>
+        <div class="flex items-center gap-[22px]">
+          ${others.map((d, i) => renderConflictSide(d) + (i < others.length - 1 ? '<span class="text-[#9f9a90] text-[0.8rem] font-black">vs</span>' : "")).join("")}
         </div>
       </div>`
     : "";
 
-  $("[data-detail-content]").innerHTML = `
-    <div class="card-top">
-      <span class="company-pill" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
-      <span class="year">${escapeHtml(decision.year)}</span>
-      <span class="tag ${escapeHtml(decision.verdict)}">${escapeHtml(verdictLabel(decision.verdict))}</span>
+  body.innerHTML = `
+    <div class="flex items-center gap-2.5">
+      <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+      <span class="${YEAR}">${escapeHtml(decision.year)}</span>
+      <span class="${TAG[decision.verdict] || TAG.kept}">${escapeHtml(verdictLabel(decision.verdict))}</span>
     </div>
-    <h2 class="detail-title">${escapeHtml(decision.title)}</h2>
     <dl class="detail-body">
-      <dt>contexto</dt><dd>${escapeHtml(decision.context)}</dd>
-      <dt>razao</dt><dd>${escapeHtml(decision.reason)}</dd>
+      <dt class="text-[#85827c] text-[0.78rem] font-black tracking-[0.06em] uppercase pt-[3px]">contexto</dt>
+      <dd class="text-[#232323] font-bold leading-[1.55] m-0">${escapeHtml(decision.context)}</dd>
+      <dt class="text-[#85827c] text-[0.78rem] font-black tracking-[0.06em] uppercase pt-[3px]">razao</dt>
+      <dd class="text-[#232323] font-bold leading-[1.55] m-0">${escapeHtml(decision.reason)}</dd>
     </dl>
-    <div class="detail-tags">${decision.tags.map((t) => `<span class="chip">${escapeHtml(t)}</span>`).join("")}</div>
-    <a class="source-link" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
+    <div class="flex flex-wrap gap-2">
+      ${decision.tags.map((t) => `<span class="${CHIP} cursor-default">${escapeHtml(t)}</span>`).join("")}
+    </div>
+    <a class="${SRC_LINK}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
       ver fonte → ${escapeHtml(new URL(decision.sourceUrl).hostname)}
     </a>
     ${conflictsHtml}`;
 
-  switchTab("consultar");
-  $("[data-decision-grid]").hidden = true;
-  $("[data-conflict-panel]").hidden = true;
-  $("[data-comparison]").hidden = true;
-  $("[data-result-meta]").hidden = true;
-  $("[data-detail-panel]").hidden = false;
+  $("[data-modal-overlay]").classList.add("open");
+  document.body.style.overflow = "hidden";
 }
 
 function closeDetail() {
-  $("[data-decision-grid]").hidden = false;
-  $("[data-comparison]").hidden = false;
-  $("[data-result-meta]").hidden = false;
-  $("[data-detail-panel]").hidden = true;
-  renderConflict(findConflict(state.results));
+  $("[data-modal-overlay]").classList.remove("open");
+  document.body.style.overflow = "";
 }
 
 function renderLoadError(error) {
   $("[data-result-count]").textContent = "erro ao carregar dados";
-  $("[data-decision-grid]").innerHTML = `<p class="empty-state">${escapeHtml(error.message)}</p>`;
+  $("[data-decision-grid]").innerHTML = `<p class="bg-white border border-dashed border-[#dfdcd4] rounded-xl text-[#85827c] font-extrabold p-7">${escapeHtml(error.message)}</p>`;
 }
 
 // ── URL compartilhável ────────────────────────────────────────────────────────
@@ -316,7 +339,6 @@ function setQuery(query) {
 function exportSavedAsMarkdown() {
   const items = state.decisions.filter((d) => state.saved.has(d.id));
   if (!items.length) return;
-
   const lines = ["# Decisões salvas — Arbiter\n"];
   for (const d of items) {
     lines.push(`## ${d.title} — ${d.company} (${d.year})\n`);
@@ -328,7 +350,6 @@ function exportSavedAsMarkdown() {
     lines.push(`**Fonte:** ${d.sourceUrl}\n`);
     lines.push("---\n");
   }
-
   const url = URL.createObjectURL(new Blob([lines.join("\n")], { type: "text/markdown" }));
   Object.assign(document.createElement("a"), { href: url, download: "arbiter-salvos.md" }).click();
   URL.revokeObjectURL(url);
@@ -347,6 +368,10 @@ function bindSearch(formSelector) {
 function bindEvents() {
   bindSearch("[data-landing-search]");
   bindSearch("[data-app-search]");
+
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeDetail();
+  });
 
   document.addEventListener("click", (event) => {
     const chip = event.target.closest("[data-query]");
@@ -380,8 +405,8 @@ function bindEvents() {
       return;
     }
 
-    if (event.target.closest("[data-close-detail]")) { closeDetail(); return; }
-
+    if (event.target.closest("[data-modal-close]")) { closeDetail(); return; }
+    if (event.target === $("[data-modal-overlay]")) { closeDetail(); return; }
     if (event.target.closest("[data-export-saved]")) { exportSavedAsMarkdown(); return; }
 
     const card = event.target.closest("[data-detail-for]");

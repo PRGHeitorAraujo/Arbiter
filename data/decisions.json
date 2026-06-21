@@ -11,10 +11,7 @@
     "reason": "custo operacional de adotar infra nova nao se justificava; Postgres ja estava no stack e resolvia com muito menos complexidade.",
     "source_url": "https://dagster.io/blog",
     "tags": ["kafka", "postgres", "startup", "message-queue", "complexidade"],
-    "ui": {
-      "color": "#edeaff",
-      "tone": "#534ab7"
-    }
+    "ui": { "color": "#edeaff", "tone": "#534ab7" }
   },
   {
     "id": "hotstar-kafka-adopted",
@@ -28,10 +25,7 @@
     "reason": "alto throughput e baixa latencia eram o requisito central; Kafka entregava o volume exigido e ja fazia sentido no stack.",
     "source_url": "https://blog.hotstar.com/",
     "tags": ["kafka", "streaming", "scale", "message-queue", "latencia"],
-    "ui": {
-      "color": "#dcf5ec",
-      "tone": "#14866d"
-    }
+    "ui": { "color": "#dcf5ec", "tone": "#14866d" }
   },
   {
     "id": "shopify-rabbitmq-kept",
@@ -45,10 +39,7 @@
     "reason": "a complexidade de Kafka nao compensava em todos os fluxos; sharding e disciplina operacional estenderam a vida do RabbitMQ.",
     "source_url": "https://shopify.engineering/",
     "tags": ["rabbitmq", "sharding", "message-queue", "migracao"],
-    "ui": {
-      "color": "#fde8f0",
-      "tone": "#b44d70"
-    }
+    "ui": { "color": "#fde8f0", "tone": "#b44d70" }
   },
   {
     "id": "uber-kafka-standard",
@@ -62,10 +53,7 @@
     "reason": "o custo operacional foi absorvido pelo tamanho da plataforma; padronizar eventos reduziu variacao entre times.",
     "source_url": "https://www.uber.com/blog/engineering/",
     "tags": ["kafka", "platform", "message-queue", "infra"],
-    "ui": {
-      "color": "#eaf5de",
-      "tone": "#5a8b2d"
-    }
+    "ui": { "color": "#eaf5de", "tone": "#5a8b2d" }
   },
   {
     "id": "segment-monolith",
@@ -79,10 +67,7 @@
     "reason": "a sobrecarga de coordenar servicos superou o beneficio; um monolito modular devolveu velocidade e clareza.",
     "source_url": "https://segment.com/blog/",
     "tags": ["monolito", "microsservicos", "arquitetura", "operacao"],
-    "ui": {
-      "color": "#e8f1ff",
-      "tone": "#2f7db6"
-    }
+    "ui": { "color": "#e8f1ff", "tone": "#2f7db6" }
   },
   {
     "id": "github-adr-graphql",
@@ -96,9 +81,286 @@
     "reason": "GraphQL ajudou onde o cliente precisava montar dados de varias origens; REST continuou suficiente em fluxos simples.",
     "source_url": "https://github.com/joelparkerhenderson/architecture-decision-record",
     "tags": ["graphql", "rest", "api-style", "frontend"],
-    "ui": {
-      "color": "#eceaff",
-      "tone": "#534ab7"
-    }
+    "ui": { "color": "#eceaff", "tone": "#534ab7" }
+  },
+  {
+    "id": "linkedin-kafka-adopted",
+    "empresa": "LinkedIn",
+    "year": "2011",
+    "topic": "message-queue",
+    "subject": "Kafka",
+    "verdict": "adopted",
+    "title": "criou e adotou Kafka para pipeline de dados",
+    "context": "pipeline de dados em tempo real para feed de atividades e analytics; nenhuma ferramenta existente aguentava o volume com baixa latencia",
+    "reason": "criaram o Kafka internamente para ter throughput de centenas de MB/s com retencao de dados e replay; hoje e o padrao da industria.",
+    "source_url": "https://engineering.linkedin.com/blog/2016/04/kafka-ecosystem",
+    "tags": ["kafka", "message-queue", "streaming", "pipeline", "analytics"],
+    "ui": { "color": "#e8f0f8", "tone": "#0077b5" }
+  },
+  {
+    "id": "discord-cassandra-adopted",
+    "empresa": "Discord",
+    "year": "2017",
+    "topic": "database",
+    "subject": "Cassandra",
+    "verdict": "adopted",
+    "title": "adotou Cassandra para armazenar mensagens",
+    "context": "crescimento para 100M mensagens por dia; MongoDB nao escalava horizontalmente e gerava hotspots de escrita",
+    "reason": "Cassandra entregou escrita linear com alta disponibilidade; o modelo wide-column encaixou no padrao de acesso por canal e timestamp.",
+    "source_url": "https://discord.com/blog/how-discord-stores-billions-of-messages",
+    "tags": ["cassandra", "nosql", "database", "scale", "wide-column"],
+    "ui": { "color": "#e8edff", "tone": "#3d5af1" }
+  },
+  {
+    "id": "discord-scylladb-adopted",
+    "empresa": "Discord",
+    "year": "2022",
+    "topic": "database",
+    "subject": "ScyllaDB",
+    "verdict": "adopted",
+    "title": "migrou de Cassandra para ScyllaDB",
+    "context": "trilhoes de mensagens armazenadas; Cassandra com GC pauses frequentes e latencia p99 alta em hotspots de leitura",
+    "reason": "ScyllaDB (escrito em C++) eliminou GC pauses e reduziu latencia p99 em 40%; API compativel com Cassandra tornou a migracao de baixo risco.",
+    "source_url": "https://discord.com/blog/how-discord-stores-trillions-of-messages",
+    "tags": ["scylladb", "cassandra", "database", "latencia", "scale", "gc"],
+    "ui": { "color": "#e8edff", "tone": "#3d5af1" }
+  },
+  {
+    "id": "notion-postgres-adopted",
+    "empresa": "Notion",
+    "year": "2021",
+    "topic": "database",
+    "subject": "Postgres",
+    "verdict": "adopted",
+    "title": "fez sharding do Postgres em vez de migrar para NoSQL",
+    "context": "crescimento explosivo de usuarios; tabela de blocos com bilhoes de linhas em um unico banco Postgres chegando ao limite",
+    "reason": "migrar para NoSQL teria custo enorme e perderia transacoes e queries complexas que o produto precisava; re-sharding manual preservou toda a logica existente.",
+    "source_url": "https://www.notion.so/blog/the-great-re-shard",
+    "tags": ["postgres", "sharding", "database", "sql", "scale"],
+    "ui": { "color": "#f0f0eb", "tone": "#37352f" }
+  },
+  {
+    "id": "uber-postgres-rejected",
+    "empresa": "Uber",
+    "year": "2016",
+    "topic": "database",
+    "subject": "Postgres",
+    "verdict": "rejected",
+    "title": "saiu do Postgres para MySQL",
+    "context": "escala global com alta taxa de escrita; replicacao do Postgres causando write amplification com o padrao de acesso do Uber",
+    "reason": "a arquitetura WAL do Postgres replicava paginas inteiras mesmo para updates pequenos; MySQL com replicacao row-based escalou melhor para o volume de escrita.",
+    "source_url": "https://www.uber.com/blog/postgres-to-mysql-migration/",
+    "tags": ["postgres", "mysql", "database", "replicacao", "scale", "write-amplification"],
+    "ui": { "color": "#eaf5de", "tone": "#5a8b2d" }
+  },
+  {
+    "id": "netflix-cassandra-adopted",
+    "empresa": "Netflix",
+    "year": "2011",
+    "topic": "database",
+    "subject": "Cassandra",
+    "verdict": "adopted",
+    "title": "adotou Cassandra como banco principal de dados de usuario",
+    "context": "streaming global com dezenas de milhoes de usuarios; precisava de banco sem ponto unico de falha e com escrita em multiplas regioes simultaneamente",
+    "reason": "Cassandra entregou disponibilidade ativo-ativo multi-regiao; falha de um datacenter inteiro nao afetava a experiencia do usuario.",
+    "source_url": "https://netflixtechblog.com/",
+    "tags": ["cassandra", "nosql", "database", "multi-region", "disponibilidade", "streaming"],
+    "ui": { "color": "#ffe8e8", "tone": "#b52b2b" }
+  },
+  {
+    "id": "stackoverflow-sql-kept",
+    "empresa": "Stack Overflow",
+    "year": "2020",
+    "topic": "database",
+    "subject": "Postgres",
+    "verdict": "rejected",
+    "title": "rejeitou NoSQL, manteve SQL Server com poucos servidores",
+    "context": "bilhoes de page views por mes com pressao para migrar para solucoes NoSQL distribuidas; todo o setor migrando para bancos distribuidos",
+    "reason": "SQL Server bem tunado em hardware potente e cache agressivo servia bilhoes de requests com menos de 10 servidores; complexidade operacional de bancos distribuidos nao se justificava.",
+    "source_url": "https://stackoverflow.blog/2022/10/12/how-stack-overflow-does-it/",
+    "tags": ["sql-server", "nosql", "database", "scale", "simplicidade"],
+    "ui": { "color": "#fff3e0", "tone": "#b35a00" }
+  },
+  {
+    "id": "amazon-microservices-adopted",
+    "empresa": "Amazon",
+    "year": "2002",
+    "topic": "architecture",
+    "subject": "Microservices",
+    "verdict": "adopted",
+    "title": "mandatou APIs entre todos os times via memo Bezos",
+    "context": "monolito crescendo incontrolavelmente; times bloqueando uns aos outros e deploys lentos exigindo coordenacao entre centenas de engenheiros",
+    "reason": "o memo Bezos tornou APIs o unico contrato entre servicos; isolamento de times acelerou deploys independentes e permitiu que a AWS nascesse como produto externo.",
+    "source_url": "https://aws.amazon.com/",
+    "tags": ["microservices", "api", "arquitetura", "organizacao", "times"],
+    "ui": { "color": "#fff8e0", "tone": "#a07000" }
+  },
+  {
+    "id": "airbnb-microservices-adopted",
+    "empresa": "Airbnb",
+    "year": "2018",
+    "topic": "architecture",
+    "subject": "Microservices",
+    "verdict": "adopted",
+    "title": "migrou de monolito Rails para SOA",
+    "context": "time crescendo rapidamente; monolito Rails dificultando deploys independentes e acoplando dominios de Listagens, Pagamentos e Mensagens",
+    "reason": "separar dominios em servicos proprios permitiu times autonomos com cadencias de deploy diferentes; a base de codigo monolitica criava dependencias implicitas entre dominios.",
+    "source_url": "https://medium.com/airbnb-engineering/",
+    "tags": ["microservices", "soa", "arquitetura", "rails", "monolito", "times"],
+    "ui": { "color": "#ffe8ef", "tone": "#cc0050" }
+  },
+  {
+    "id": "basecamp-microservices-rejected",
+    "empresa": "Basecamp",
+    "year": "2021",
+    "topic": "architecture",
+    "subject": "Microservices",
+    "verdict": "rejected",
+    "title": "recusou microservices, manteve monolito Rails",
+    "context": "produto maduro com time pequeno e pressao da industria para adotar microservices; velocidade de entrega era a prioridade",
+    "reason": "monolito Rails com boas abstraicoes internas entrega velocidade de produto que microservices eliminam; complexidade operacional de orquestracao nao se justifica para times pequenos.",
+    "source_url": "https://world.hey.com/dhh/",
+    "tags": ["monolito", "microservices", "arquitetura", "rails", "time-pequeno", "simplicidade"],
+    "ui": { "color": "#e8f5e8", "tone": "#2d6a2d" }
+  },
+  {
+    "id": "shopify-microservices-rejected",
+    "empresa": "Shopify",
+    "year": "2019",
+    "topic": "architecture",
+    "subject": "Microservices",
+    "verdict": "rejected",
+    "title": "criou monolito modular em vez de microservices",
+    "context": "plataforma grande com centenas de engenheiros; pressao para quebrar o monolito Rails em microservices independentes",
+    "reason": "modularizacao interna com componentes bem definidos entregou isolamento sem overhead operacional; Shopify chama de modular monolith e evitou os custos de rede e observabilidade de microservices.",
+    "source_url": "https://shopify.engineering/deconstructing-monolith-designing-software-maximizes-developer-productivity",
+    "tags": ["monolito", "microservices", "arquitetura", "rails", "modular"],
+    "ui": { "color": "#fde8f0", "tone": "#b44d70" }
+  },
+  {
+    "id": "netflix-chaos-engineering-adopted",
+    "empresa": "Netflix",
+    "year": "2011",
+    "topic": "reliability",
+    "subject": "Chaos Engineering",
+    "verdict": "adopted",
+    "title": "criou Chaos Monkey para testar resiliencia em producao",
+    "context": "migracao para AWS com centenas de microservices; precisava garantir que falhas parciais nao derrubassem o streaming para milhoes de usuarios",
+    "reason": "injetar falhas aleatorias em producao forcou times a construir resiliencia real; sistemas que nao sobreviviam eram identificados e corrigidos proativamente antes de afetar usuarios.",
+    "source_url": "https://netflixtechblog.com/the-netflix-simian-army-16e57fbab116",
+    "tags": ["chaos-engineering", "resiliencia", "reliability", "aws", "microservices", "producao"],
+    "ui": { "color": "#ffe8e8", "tone": "#b52b2b" }
+  },
+  {
+    "id": "discord-go-rejected",
+    "empresa": "Discord",
+    "year": "2020",
+    "topic": "language",
+    "subject": "Go",
+    "verdict": "rejected",
+    "title": "reescreveu servico de presenca de Go para Rust",
+    "context": "servico Read States em Go com GC pauses causando spikes de latencia a cada 2 minutos independente de otimizacoes",
+    "reason": "GC do Go era o teto de latencia que nao conseguiam eliminar; Rust sem GC entregou latencia consistente e uso de memoria 10x menor sem sacrificar throughput.",
+    "source_url": "https://discord.com/blog/why-discord-is-switching-from-go-to-rust",
+    "tags": ["go", "rust", "language", "latencia", "gc", "performance"],
+    "ui": { "color": "#e8edff", "tone": "#3d5af1" }
+  },
+  {
+    "id": "dropbox-go-adopted",
+    "empresa": "Dropbox",
+    "year": "2014",
+    "topic": "language",
+    "subject": "Go",
+    "verdict": "adopted",
+    "title": "migrou servicos criticos de Python para Go",
+    "context": "servidor de sincronizacao em Python com GIL limitando uso de CPU multi-core e latencia alta em operacoes de I/O intensivo",
+    "reason": "Go entregou concorrencia nativa sem GIL, compilacao estatica e performance proxima de C; o time Python conseguiu aprender Go rapidamente pela simplicidade da linguagem.",
+    "source_url": "https://dropbox.tech/infrastructure/open-sourcing-our-go-libraries",
+    "tags": ["go", "python", "language", "performance", "concorrencia", "gil"],
+    "ui": { "color": "#e8f2ff", "tone": "#0061ff" }
+  },
+  {
+    "id": "cloudflare-rust-adopted",
+    "empresa": "Cloudflare",
+    "year": "2022",
+    "topic": "language",
+    "subject": "Rust",
+    "verdict": "adopted",
+    "title": "reescreveu proxy global de C/Nginx para Rust (Pingora)",
+    "context": "proxy reverso global servindo 35M requests por segundo; Nginx com limitacoes de compartilhamento de conexoes entre threads e alto uso de memoria",
+    "reason": "Rust permitiu compartilhamento seguro de conexoes entre threads; CPU caiu 70% e memoria 67% comparado ao Nginx, sem abrir mao de seguranca de memoria.",
+    "source_url": "https://blog.cloudflare.com/how-we-built-pingora-the-proxy-that-connects-cloudflare-to-the-internet/",
+    "tags": ["rust", "nginx", "language", "proxy", "performance", "cpu"],
+    "ui": { "color": "#fff3e8", "tone": "#b35000" }
+  },
+  {
+    "id": "whatsapp-erlang-adopted",
+    "empresa": "WhatsApp",
+    "year": "2012",
+    "topic": "language",
+    "subject": "Erlang",
+    "verdict": "adopted",
+    "title": "escalou para 2M conexoes por servidor com Erlang",
+    "context": "plataforma de mensagens com bilhoes de mensagens por dia e time de backend com menos de 10 engenheiros",
+    "reason": "Erlang/OTP foi desenhado para sistemas de telecomunicacao distribuidos; processos leves (actors) e supervisao de falhas eliminaram necessidade de infra extra para resiliencia.",
+    "source_url": "https://blog.whatsapp.com/1-million-is-so-2011",
+    "tags": ["erlang", "language", "concorrencia", "scale", "mensageria", "actors"],
+    "ui": { "color": "#e8f8ef", "tone": "#128c7e" }
+  },
+  {
+    "id": "twitter-scala-adopted",
+    "empresa": "Twitter",
+    "year": "2012",
+    "topic": "language",
+    "subject": "Scala",
+    "verdict": "adopted",
+    "title": "migrou de Ruby on Rails para Scala na JVM",
+    "context": "plataforma viral com picos imprevistos de trafego; Ruby on Rails com dificuldades de escalonamento durante Super Bowl e outras tendencias",
+    "reason": "JVM com Scala entregou throughput e ferramentas de profiling que Ruby nao tinha; Finagle permitiu construir microservices RPC de alta performance com tipagem forte.",
+    "source_url": "https://blog.twitter.com/engineering/en_us/topics/infrastructure",
+    "tags": ["scala", "ruby", "jvm", "language", "performance", "scale"],
+    "ui": { "color": "#e8f5fd", "tone": "#1a8cd8" }
+  },
+  {
+    "id": "etsy-continuous-deploy-adopted",
+    "empresa": "Etsy",
+    "year": "2010",
+    "topic": "deploy",
+    "subject": "Continuous Deployment",
+    "verdict": "adopted",
+    "title": "adotou dezenas de deploys por dia com feature flags",
+    "context": "ciclos de release longos causando acumulo de mudancas e deploys arriscados com muito contexto perdido entre o codigo e a producao",
+    "reason": "deploys pequenos e frequentes reduziram o tamanho do changeset e facilitaram rollback; feature flags desacoplaram deploy de release e permitiram testes em producao com controle.",
+    "source_url": "https://codeascraft.com/2010/05/20/quantum-of-deployment/",
+    "tags": ["continuous-deployment", "deploy", "feature-flags", "devops", "rollback"],
+    "ui": { "color": "#fff0e8", "tone": "#b34700" }
+  },
+  {
+    "id": "figma-wasm-adopted",
+    "empresa": "Figma",
+    "year": "2017",
+    "topic": "deploy",
+    "subject": "WebAssembly",
+    "verdict": "adopted",
+    "title": "compilou engine C++ para WebAssembly no browser",
+    "context": "editor vetorial complexo precisava rodar no browser com performance proxima de app nativo, sem plugins ou downloads obrigatorios",
+    "reason": "WebAssembly permitiu compilar o engine de rendering C++ direto para o browser mantendo 60fps; eliminou o app desktop e reduziu o tempo de carregamento em 3x.",
+    "source_url": "https://www.figma.com/blog/webassembly-cut-figmas-load-time-by-3x/",
+    "tags": ["webassembly", "wasm", "c++", "deploy", "browser", "performance"],
+    "ui": { "color": "#f5e8ff", "tone": "#7c3aed" }
+  },
+  {
+    "id": "stripe-graphql-rejected",
+    "empresa": "Stripe",
+    "year": "2019",
+    "topic": "api-style",
+    "subject": "GraphQL",
+    "verdict": "rejected",
+    "title": "manteve REST e rejeitou GraphQL para API publica",
+    "context": "API publica usada por milhoes de desenvolvedores; GraphQL avaliado como alternativa para reducao de over-fetching e flexibilidade de queries",
+    "reason": "versionamento REST por data (YYYY-MM-DD) ja resolvia backwards compatibility sem a complexidade de schemas GraphQL; a previsibilidade do REST era mais importante que flexibilidade para o perfil dos clientes da Stripe.",
+    "source_url": "https://stripe.com/blog/api-versioning",
+    "tags": ["graphql", "rest", "api-style", "backwards-compatibility", "versionamento"],
+    "ui": { "color": "#eee8ff", "tone": "#635bff" }
   }
 ]

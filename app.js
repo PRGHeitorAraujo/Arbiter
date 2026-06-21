@@ -14,6 +14,7 @@ const state = {
   sources: [],
   query: "sistema de notificacoes - 50k usuarios - time de 3 devs - latencia toleravel 2s",
   results: [],
+  filters: { topic: null, verdict: null },
   saved: new Set(JSON.parse(localStorage.getItem("arbiter.saved") || "[]")),
 };
 
@@ -58,6 +59,14 @@ function validateDecision(decision) {
 
 function verdictLabel(verdict) {
   return { adopted: "adotou", rejected: "rejeitou", kept: "manteve" }[verdict];
+}
+
+function applyFilters(decisions) {
+  return decisions.filter((d) => {
+    if (state.filters.topic && d.topic !== state.filters.topic) return false;
+    if (state.filters.verdict && d.verdict !== state.filters.verdict) return false;
+    return true;
+  });
 }
 
 // ── render helpers ────────────────────────────────────────────────────────────
@@ -134,6 +143,68 @@ function renderConflict(pair) {
     </div>`;
 }
 
+function renderFilterBar() {
+  const topics = [...new Set(state.decisions.map((d) => d.topic))].sort();
+  const verdicts = ["adopted", "rejected", "kept"];
+
+  $("[data-filter-bar]").innerHTML = `
+    <div class="filter-row">
+      <span class="filter-label">tópico</span>
+      <div class="filter-chips">
+        ${topics
+          .map(
+            (t) =>
+              `<button class="filter-chip ${state.filters.topic === t ? "active" : ""}" type="button" data-filter="topic" data-value="${escapeHtml(t)}">${escapeHtml(t)}</button>`
+          )
+          .join("")}
+      </div>
+    </div>
+    <div class="filter-row">
+      <span class="filter-label">decisão</span>
+      <div class="filter-chips">
+        ${verdicts
+          .map(
+            (v) =>
+              `<button class="filter-chip ${state.filters.verdict === v ? "active" : ""} ${v}" type="button" data-filter="verdict" data-value="${escapeHtml(v)}">${escapeHtml(verdictLabel(v))}</button>`
+          )
+          .join("")}
+      </div>
+    </div>`;
+}
+
+function renderComparisonTable(results) {
+  const container = $("[data-comparison]");
+  const bySubject = {};
+  for (const d of results) (bySubject[d.subject] ??= []).push(d);
+  const groups = Object.entries(bySubject).filter(([, ds]) => ds.length >= 2);
+
+  if (!groups.length) { container.innerHTML = ""; return; }
+
+  container.innerHTML = groups
+    .map(
+      ([subject, decisions]) => `
+        <div class="comparison-wrap">
+          <p class="comparison-eyebrow">${escapeHtml(subject)} — ${decisions.length} decisões</p>
+          <table class="comparison">
+            <thead><tr><th>empresa</th><th>contexto</th><th>decisão</th></tr></thead>
+            <tbody>
+              ${decisions
+                .map(
+                  (d) => `
+                <tr class="comparison-row" data-detail-for="${escapeHtml(d.id)}">
+                  <td><span class="company-pill" style="background:${escapeHtml(d.color)};color:${escapeHtml(d.tone)}">${escapeHtml(d.company)}</span></td>
+                  <td class="comparison-context">${escapeHtml(d.context)}</td>
+                  <td><span class="tag ${escapeHtml(d.verdict)}">${escapeHtml(verdictLabel(d.verdict))}</span></td>
+                </tr>`
+                )
+                .join("")}
+            </tbody>
+          </table>
+        </div>`
+    )
+    .join("");
+}
+
 // ── views ─────────────────────────────────────────────────────────────────────
 
 function switchTab(name) {
@@ -142,11 +213,14 @@ function switchTab(name) {
 }
 
 function renderResults() {
-  state.results = searchDecisions(state.decisions, state.query);
+  const searched = searchDecisions(state.decisions, state.query);
+  state.results = applyFilters(searched);
   $("[data-query-input]").value = state.query;
   $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
   $("[data-decision-grid]").innerHTML = state.results.map(renderDecisionCard).join("");
+  renderComparisonTable(state.results);
   renderConflict(findConflict(state.results));
+  renderFilterBar();
 }
 
 function renderSaved() {
@@ -205,12 +279,14 @@ function renderDetail(decision) {
   switchTab("consultar");
   $("[data-decision-grid]").hidden = true;
   $("[data-conflict-panel]").hidden = true;
+  $("[data-comparison]").hidden = true;
   $("[data-result-meta]").hidden = true;
   $("[data-detail-panel]").hidden = false;
 }
 
 function closeDetail() {
   $("[data-decision-grid]").hidden = false;
+  $("[data-comparison]").hidden = false;
   $("[data-result-meta]").hidden = false;
   $("[data-detail-panel]").hidden = true;
   renderConflict(findConflict(state.results));
@@ -275,6 +351,14 @@ function bindEvents() {
   document.addEventListener("click", (event) => {
     const chip = event.target.closest("[data-query]");
     if (chip) { setQuery(chip.dataset.query); return; }
+
+    const filterChip = event.target.closest("[data-filter]");
+    if (filterChip) {
+      const { filter, value } = filterChip.dataset;
+      state.filters[filter] = state.filters[filter] === value ? null : value;
+      renderResults();
+      return;
+    }
 
     const saveButton = event.target.closest("[data-save]");
     if (saveButton) {

@@ -2,6 +2,8 @@
 
 Buscador de decisões reais de engenharia. Descreva o contexto do problema e veja o que times como Discord, Figma, Uber e Shopify decidiram — com fonte linkada e detecção automática de conflito quando empresas chegaram a conclusões opostas sobre a mesma tecnologia.
 
+**🔗 Demo:** https://arbiter-neon.vercel.app
+
 ## Screenshots
 
 ![Hero — landing page](files/screenshot-hero.png)

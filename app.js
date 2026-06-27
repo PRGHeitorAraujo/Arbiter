@@ -195,14 +195,14 @@ function renderCompactCard(decision) {
 
 function renderConflictSide(decision) {
   return `
-    <article class="bg-white rounded-lg p-[22px]">
+    <article class="bg-white rounded-lg p-[22px] cursor-pointer hover:shadow-md transition-shadow duration-150" data-detail-for="${escapeHtml(decision.id)}">
       <div class="flex items-center gap-2.5 mb-[18px]">
         <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
         <span class="${YEAR}">${escapeHtml(decision.year)}</span>
       </div>
       <h3 class="text-[1.12rem] font-bold mb-2 mt-0">${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
       <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] m-0">${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
-      <a class="${SRC_LINK}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">${escapeHtml(hostname(decision.sourceUrl))}</a>
+      <a class="${SRC_LINK}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(hostname(decision.sourceUrl))}</a>
     </article>`;
 }
 

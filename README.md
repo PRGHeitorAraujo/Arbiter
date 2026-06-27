@@ -2,9 +2,13 @@
 
 Buscador de decisões reais de engenharia. Descreva o contexto do problema e veja o que times como Discord, Figma, Uber e Shopify decidiram — com fonte linkada e detecção automática de conflito quando empresas chegaram a conclusões opostas sobre a mesma tecnologia.
 
-## Demo
+## Screenshots
 
-![Arbiter — busca e painel de conflito](files/arbiter_design_opt.png)
+![Hero — landing page](files/screenshot-hero.png)
+
+![App — 108 decisões com filtros por tópico, veredicto e empresa](files/screenshot-app.png)
+
+![Conflito — Basecamp rejeitou vs Airbnb adotou microservices](files/screenshot-conflict.png)
 
 ## Funcionalidades
 

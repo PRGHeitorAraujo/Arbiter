@@ -2,6 +2,7 @@
 <html lang="pt-BR" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
+    <script>if(localStorage.getItem("arbiter.dark")==="1")document.documentElement.classList.add("dark");</script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Arbiter mostra decisoes reais de engenharia e conflitos entre contextos diferentes." />
     <title>Arbiter</title>
@@ -50,10 +51,9 @@
         </svg>
         <span>arbiter</span>
       </a>
-      <nav class="flex gap-9 text-[#85827c] text-[0.94rem] font-bold" aria-label="principal">
+      <nav class="flex items-center gap-6 text-[#85827c] text-[0.94rem] font-bold" aria-label="principal">
         <a class="hover:text-[#232323] transition-colors duration-150" href="#how">como funciona</a>
-        <a class="hover:text-[#232323] transition-colors duration-150" href="#sources">fontes</a>
-        <a class="hover:text-[#232323] transition-colors duration-150" href="files/arbiter_spec.pdf">docs</a>
+        <button class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#dfdcd4] bg-white text-[#85827c] hover:bg-[#f0eee8] transition-colors" type="button" data-dark-toggle title="modo escuro"></button>
       </nav>
     </header>
 
@@ -169,7 +169,6 @@
             <button class="tab rounded-md text-[#85827c] min-h-[35px] px-4 font-extrabold cursor-pointer border-0 bg-transparent hover:text-[#232323] transition-colors duration-150" type="button" data-view="consultar">consultar</button>
             <button class="tab rounded-md text-[#85827c] min-h-[35px] px-4 font-extrabold cursor-pointer border-0 bg-transparent hover:text-[#232323] transition-colors duration-150" type="button" data-view="salvos">salvos</button>
             <button class="tab rounded-md text-[#85827c] min-h-[35px] px-4 font-extrabold cursor-pointer border-0 bg-transparent hover:text-[#232323] transition-colors duration-150" type="button" data-view="topicos">tópicos</button>
-            <button class="tab rounded-md text-[#85827c] min-h-[35px] px-4 font-extrabold cursor-pointer border-0 bg-transparent hover:text-[#232323] transition-colors duration-150" type="button" data-view="fontes">fontes</button>
           </div>
         </header>
 
@@ -216,11 +215,6 @@
           <div data-topics-content></div>
         </div>
 
-        <!-- FONTES -->
-        <div class="app-view pt-7" data-panel="fontes">
-          <h2 class="text-[1.05rem] font-bold mb-5 mt-0">fontes</h2>
-          <div class="grid gap-2.5 grid-cols-4" data-app-source-grid></div>
-        </div>
 
       </section>
     </main>

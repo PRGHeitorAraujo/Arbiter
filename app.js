@@ -19,6 +19,7 @@ const state = {
   slugMap: new Map(),
   displayLimit: 12,
   viewMode: "grid",
+  hasConflict: new Set(),
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -106,6 +107,13 @@ function applyFilters(decisions) {
   });
 }
 
+// Pool para detecção de conflito: aplica query e filtro de tópico, mas ignora
+// veredicto e empresa — sem isso, filtrar por "adotou" esconde conflitos.
+function getConflictPool() {
+  const searched = searchDecisions(state.decisions, state.query);
+  return state.filters.topic ? searched.filter((d) => d.topic === state.filters.topic) : searched;
+}
+
 // ── class constants ───────────────────────────────────────────────────────────
 
 const CHIP = "bg-white border border-[#dedbd2] rounded-full text-[#8b877e] cursor-pointer text-[0.82rem] font-extrabold min-h-[29px] px-[17px] hover:bg-[#f0eee8] transition-colors duration-150";
@@ -149,7 +157,7 @@ function renderSources(rootSelector) {
     .join("");
 }
 
-function renderDecisionCard(decision) {
+function renderDecisionCard(decision, inSavedPanel = false) {
   const isSaved = state.saved.has(decision.id);
   return `
     <article class="card-appear bg-white border border-[#dfdcd4] rounded-xl shadow-sm cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 px-7 pt-7 pb-[18px]" data-detail-for="${escapeHtml(decision.id)}">
@@ -163,9 +171,9 @@ function renderDecisionCard(decision) {
       <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] min-h-[54px] m-0">${escapeHtml(decision.reason)}</p>
       <div class="border-t border-[#ece9e2] flex gap-[18px] mt-[18px] pt-[14px]">
         <a class="${TEXT_BTN}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">ver fonte <span class="opacity-40 font-extrabold">${escapeHtml(sourceType(decision.sourceUrl))}</span></a>
-        <button class="${TEXT_BTN}" type="button" data-conflict-for="${escapeHtml(decision.id)}">ver conflito</button>
+        ${state.hasConflict.has(decision.id) ? `<button class="${TEXT_BTN}" type="button" data-conflict-for="${escapeHtml(decision.id)}">ver conflito</button>` : ""}
         <button class="bg-transparent border-0 cursor-pointer text-[0.82rem] font-black p-0 transition-colors duration-150 ${isSaved ? "text-[#534ab7]" : "text-[#817d74] hover:text-[#232323]"}" type="button" data-save="${escapeHtml(decision.id)}">
-          ${isSaved ? "salvo" : "+ salvar"}
+          ${isSaved ? (inSavedPanel ? "— remover" : "salvo") : "+ salvar"}
         </button>
       </div>
     </article>`;
@@ -326,13 +334,13 @@ function renderResults() {
   }
 
   renderComparisonTable(state.results);
-  renderConflict(findConflict(state.results));
+  renderConflict(findConflict(getConflictPool()));
   renderFilterBar();
 }
 
 function renderSaved() {
   const items = state.decisions.filter((d) => state.saved.has(d.id));
-  $("[data-saved-grid]").innerHTML = items.map(renderDecisionCard).join("");
+  $("[data-saved-grid]").innerHTML = items.map((d) => renderDecisionCard(d, true)).join("");
   $("[data-saved-empty]").style.display = items.length ? "none" : "block";
   $("[data-export-saved]").hidden = items.length === 0;
 }
@@ -378,6 +386,7 @@ function renderDetail(decision, pushUrl = true) {
   initial.style.color = decision.tone;
   title.textContent = decision.title;
 
+  const isSaved = state.saved.has(decision.id);
   const others = findConflictsFor(decision, state.decisions).map(([r, a]) => (r.id === decision.id ? a : r));
   const conflictsHtml = others.length
     ? `<div class="bg-[#f0eee8] rounded-xl px-6 py-[22px]">
@@ -428,6 +437,9 @@ function renderDetail(decision, pushUrl = true) {
         <span class="ml-1 opacity-50 text-[0.72rem]">${escapeHtml(sourceType(decision.sourceUrl))}</span>
       </a>
       <button class="bg-transparent border border-[#dedbd2] rounded-lg text-[#817d74] text-[0.82rem] font-black px-3 py-[7px] cursor-pointer hover:bg-[#f0eee8] transition-colors" type="button" data-copy-link="/d/${escapeHtml(decision.id)}">copiar link</button>
+      <button class="border rounded-lg text-[0.82rem] font-black px-3 py-[7px] cursor-pointer transition-colors"
+        style="${isSaved ? "color:#534ab7;background:#edeaff;border-color:#c7c0f0" : "color:#817d74;background:transparent;border-color:#dedbd2"}"
+        type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo" : "+ salvar"}</button>
     </div>
     ${conflictsHtml}
     ${relatedHtml}`;
@@ -695,6 +707,9 @@ function bindEvents() {
       return;
     }
 
+    const darkToggle = event.target.closest("[data-dark-toggle]");
+    if (darkToggle) { toggleDarkMode(); return; }
+
     const chip = event.target.closest("[data-query]");
     if (chip) { setQuery(chip.dataset.query); return; }
 
@@ -741,6 +756,14 @@ function bindEvents() {
       localStorage.setItem("arbiter.saved", JSON.stringify([...state.saved]));
       renderResults();
       renderSaved();
+      const modSaveBtn = $("[data-modal-overlay].open [data-save]");
+      if (modSaveBtn && modSaveBtn.dataset.save === id) {
+        const nowSaved = state.saved.has(id);
+        modSaveBtn.textContent = nowSaved ? "salvo" : "+ salvar";
+        modSaveBtn.style.color = nowSaved ? "#534ab7" : "#817d74";
+        modSaveBtn.style.background = nowSaved ? "#edeaff" : "transparent";
+        modSaveBtn.style.borderColor = nowSaved ? "#c7c0f0" : "#dedbd2";
+      }
       return;
     }
 
@@ -749,8 +772,9 @@ function bindEvents() {
       const decision = state.decisions.find((d) => d.id === conflictButton.dataset.conflictFor);
       if (!decision) return;
       switchTab("consultar");
-      renderConflict(findConflict([decision, ...state.decisions]));
-      $("[data-conflict-panel]").scrollIntoView({ behavior: "smooth", block: "start" });
+      const pair = findConflict([decision, ...state.decisions]);
+      renderConflict(pair);
+      if (pair) $("[data-conflict-panel]").scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 
@@ -799,19 +823,45 @@ function bindEvents() {
 
 // ── init ──────────────────────────────────────────────────────────────────────
 
+const DARK_KEY = "arbiter.dark";
+
+function initDarkMode() {
+  if (localStorage.getItem(DARK_KEY) === "1") document.documentElement.classList.add("dark");
+  updateDarkToggle();
+}
+
+function toggleDarkMode() {
+  const isDark = document.documentElement.classList.toggle("dark");
+  localStorage.setItem(DARK_KEY, isDark ? "1" : "0");
+  updateDarkToggle();
+}
+
+function updateDarkToggle() {
+  const btn = $("[data-dark-toggle]");
+  if (!btn) return;
+  const isDark = document.documentElement.classList.contains("dark");
+  btn.title = isDark ? "modo claro" : "modo escuro";
+  btn.innerHTML = isDark
+    ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="2.5"/><line x1="7" y1="0.5" x2="7" y2="2"/><line x1="7" y1="12" x2="7" y2="13.5"/><line x1="0.5" y1="7" x2="2" y2="7"/><line x1="12" y1="7" x2="13.5" y2="7"/><line x1="2.65" y1="2.65" x2="3.7" y2="3.7"/><line x1="10.3" y1="10.3" x2="11.35" y2="11.35"/><line x1="11.35" y1="2.65" x2="10.3" y2="3.7"/><line x1="3.7" y1="10.3" x2="2.65" y2="11.35"/></svg>`
+    : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.25 7.46A5.25 5.25 0 1 1 6.54 1.75 4.08 4.08 0 0 0 12.25 7.46z"/></svg>`;
+}
+
 async function init() {
   renderChips("[data-chip-row]");
   renderChips("[data-app-chips]");
   bindEvents();
+  initDarkMode();
 
   try {
     const [rawDecisions, sources] = await Promise.all([loadJson("data/decisions.json"), loadJson("data/sources.json")]);
     rawDecisions.forEach(validateDecision);
     state.decisions = rawDecisions.map(normalizeDecision);
     state.slugMap = new Map(state.decisions.map((d) => [d.id, d]));
+    state.hasConflict = new Set(
+      state.decisions.filter((d) => findConflictsFor(d, state.decisions).length > 0).map((d) => d.id)
+    );
     state.sources = sources;
     renderSources("[data-source-grid]");
-    renderSources("[data-app-source-grid]");
     renderSaved();
     renderSearchHistory();
     route();

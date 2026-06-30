@@ -20,6 +20,10 @@ const state = {
   displayLimit: 12,
   viewMode: "compact",
   hasConflict: new Set(),
+  companyView: "index",
+  selectedCompany: null,
+  compareCompany: null,
+  companySearch: "",
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -37,6 +41,10 @@ function escapeHtml(value) {
 function hostname(url) {
   try { return new URL(url).hostname; } catch { return url; }
 }
+
+// btoa/atob safe for arbitrary unicode (e.g. em-dash in markdown snippets)
+function toB64(str) { return btoa(unescape(encodeURIComponent(str))); }
+function fromB64(str) { return decodeURIComponent(escape(atob(str))); }
 
 function sourceType(url) {
   try {
@@ -578,6 +586,244 @@ function renderTopics() {
     .join("");
 }
 
+// ── empresas (2i + 2h) ────────────────────────────────────────────────────────
+
+function getCompanyList() {
+  const map = new Map();
+  for (const d of state.decisions) {
+    if (!map.has(d.company)) {
+      map.set(d.company, { company: d.company, color: d.color, tone: d.tone, count: 0, adopted: 0, rejected: 0, kept: 0 });
+    }
+    const c = map.get(d.company);
+    c.count++;
+    if (d.verdict === "adopted") c.adopted++;
+    else if (d.verdict === "rejected") c.rejected++;
+    else c.kept++;
+  }
+  return [...map.values()].sort((a, b) => b.count - a.count || a.company.localeCompare(b.company));
+}
+
+function getCompanyTags(decisions) {
+  const freq = new Map();
+  for (const d of decisions) for (const t of d.tags) freq.set(t, (freq.get(t) || 0) + 1);
+  return [...freq.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([t]) => t);
+}
+
+function getCompanyTagline(stats) {
+  const { count, adopted, rejected, kept } = stats;
+  if (adopted / count >= 0.75) return "adota tecnologias novas com frequência";
+  if (rejected / count >= 0.5) return "conservador — prefere manter o que funciona";
+  if (kept / count > 0 && kept / count >= 0.3) return "mantém escolhas estabelecidas por mais tempo";
+  return "veredictos mistos — depende do contexto";
+}
+
+function renderCompanyCard(c) {
+  const tagline = getCompanyTagline(c);
+  return `
+    <button type="button" class="text-left bg-white border border-[#e8e4d8] rounded-[13px] p-4 hover:border-[#5b4fe0] hover:shadow-md transition-all cursor-pointer" data-company-card="${escapeHtml(c.company)}">
+      <div class="flex items-center justify-between gap-2 mb-2.5">
+        <span class="${PILL} flex-none" style="background:${escapeHtml(c.color)};color:${escapeHtml(c.tone)}">${escapeHtml(c.company)}</span>
+        <span class="font-mono text-[12px] text-[#a9a497] flex-none">${c.count}</span>
+      </div>
+      <p class="text-[13px] text-[#6f6a5e] mb-3 mt-0 leading-[1.4]">${escapeHtml(tagline)}</p>
+      <div class="flex gap-[3px] h-[5px]">
+        ${c.adopted ? `<div class="rounded-[3px]" style="flex:${c.adopted};background:#1a7a43"></div>` : ""}
+        ${c.rejected ? `<div class="rounded-[3px]" style="flex:${c.rejected};background:#b4571c"></div>` : ""}
+        ${c.kept ? `<div class="rounded-[3px]" style="flex:${c.kept};background:#a9a497"></div>` : ""}
+      </div>
+    </button>`;
+}
+
+function renderCompaniesGrid() {
+  const grid = $("[data-companies-grid]");
+  if (!grid) return;
+  const q = (state.companySearch || "").toLowerCase().trim();
+  const list = getCompanyList();
+  const filtered = q ? list.filter(c => c.company.toLowerCase().includes(q)) : list;
+  grid.innerHTML = filtered.map(renderCompanyCard).join("") ||
+    `<p class="col-span-3 text-[#85827c] text-[13px]">nenhuma empresa encontrada.</p>`;
+}
+
+function renderCompaniesIndex() {
+  const list = getCompanyList();
+  return `
+    <div class="flex items-center justify-between mb-5 flex-wrap gap-3">
+      <span class="text-[1.05rem] font-bold text-[#16140f]">${list.length} empresas <span class="text-[#a9a497] font-semibold text-[0.92rem]">no corpus</span></span>
+      <input type="search" placeholder="buscar empresa…" value="${escapeHtml(state.companySearch || "")}" data-companies-search
+        class="bg-white border border-[#ddd9cf] rounded-lg text-[13px] px-3 py-2 outline-none w-[220px]" />
+    </div>
+    <div class="grid gap-3" style="grid-template-columns:repeat(3,1fr)" data-companies-grid></div>`;
+}
+
+function renderCompanyProfile(companyName) {
+  const decisions = state.decisions.filter(d => d.company === companyName);
+  if (!decisions.length) { state.companyView = "index"; return renderCompaniesIndex(); }
+  const stats = getCompanyList().find(c => c.company === companyName);
+  const tagline = getCompanyTagline(stats);
+  const tags = getCompanyTags(decisions);
+  const others = getCompanyList().filter(c => c.company !== companyName);
+  return `
+    <button type="button" class="bg-transparent border-0 p-0 text-[#6f6a5e] text-[13px] font-semibold mb-4 hover:text-[#16140f] transition-colors cursor-pointer" data-company-back>← todas as empresas</button>
+    <div class="rounded-[18px] border border-[#e8e4d8] overflow-hidden">
+      <div class="px-7 py-6" data-profile-header style="background:linear-gradient(180deg,${escapeHtml(stats.color)}44,#fffdf8)">
+        <div class="flex items-start justify-between gap-4 flex-wrap">
+          <div>
+            <div class="flex items-center gap-3 flex-wrap">
+              <span class="${PILL}" style="background:${escapeHtml(stats.color)};color:${escapeHtml(stats.tone)}">${escapeHtml(companyName)}</span>
+              <span class="font-extrabold text-[18px] text-[#16140f]">${escapeHtml(tagline)}</span>
+            </div>
+            ${tags.length ? `<div class="flex gap-1.5 flex-wrap mt-3">${tags.map(t => `<span class="text-[12px] font-semibold text-[#46423a] bg-white border border-[#ddd9cf] rounded-full px-2.5 py-[5px]">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+            <div class="flex gap-5 mt-3 flex-wrap">
+              <span class="font-mono text-[12px] text-[#6f6a5e]"><strong class="text-[#16140f] text-[14px]">${stats.count}</strong> decisões</span>
+              <span class="font-mono text-[12px] text-[#6f6a5e]"><strong class="text-[#1a7a43] text-[14px]">${stats.adopted}</strong> adotou</span>
+              <span class="font-mono text-[12px] text-[#6f6a5e]"><strong class="text-[#b4571c] text-[14px]">${stats.rejected}</strong> rejeitou</span>
+              <span class="font-mono text-[12px] text-[#6f6a5e]"><strong class="text-[#a9a497] text-[14px]">${stats.kept}</strong> manteve</span>
+            </div>
+          </div>
+          ${others.length ? `
+          <div class="flex items-center gap-2 flex-none">
+            <span class="text-[13px] font-semibold text-[#6f6a5e]">comparar com</span>
+            <select data-compare-select class="bg-white border border-[#ddd9cf] rounded-lg text-[13px] font-semibold px-3 py-2 outline-none cursor-pointer">
+              <option value="">escolher…</option>
+              ${others.map(c => `<option value="${escapeHtml(c.company)}">${escapeHtml(c.company)}</option>`).join("")}
+            </select>
+          </div>` : ""}
+        </div>
+      </div>
+      <div class="px-7 py-6 border-t border-[#e8e4d8]">
+        <span class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">decisões</span>
+        <div class="flex flex-col gap-2 mt-3">
+          ${decisions.map(d => `
+            <div class="flex items-center gap-3 bg-white border border-[#e8e4d8] rounded-[11px] px-4 py-3 cursor-pointer hover:bg-[#faf9f7] transition-colors" data-detail-for="${escapeHtml(d.id)}">
+              <span class="font-mono text-[11px] text-[#a9a497] w-[100px] flex-none truncate">${escapeHtml(d.topic)}</span>
+              <span class="font-semibold text-[14px] text-[#16140f] flex-1 truncate">${escapeHtml(d.title)}</span>
+              ${d.revisedAt ? `<span class="font-mono text-[11px] text-[#9a4d12] flex-none">↻ ${escapeHtml(d.revisedAt)}</span>` : ""}
+              <span class="${TAG_FLAT[d.verdict] || TAG_FLAT.kept} flex-none">${escapeHtml(verdictLabel(d.verdict))}</span>
+            </div>`).join("")}
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderCompareOnlyCard(d) {
+  return `
+    <div class="bg-white border border-[#e8e4d8] rounded-[11px] p-3 cursor-pointer hover:bg-[#faf9f7] transition-colors" data-detail-for="${escapeHtml(d.id)}">
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="${TAG_FLAT[d.verdict] || TAG_FLAT.kept} flex-none">${escapeHtml(verdictLabel(d.verdict))}</span>
+        <span class="font-bold text-[13px] text-[#16140f]">${escapeHtml(d.subject)}</span>
+        <span class="font-mono text-[11px] text-[#a9a497] ml-auto">${escapeHtml(d.topic)}</span>
+      </div>
+      <p class="text-[12px] text-[#6f6a5e] mt-1.5 mb-0 leading-[1.5]">${escapeHtml(d.reason.slice(0, 100))}${d.reason.length > 100 ? "…" : ""}</p>
+    </div>`;
+}
+
+function renderCompanyCompare(companyA, companyB) {
+  const list = getCompanyList();
+  const statsA = list.find(c => c.company === companyA);
+  const statsB = list.find(c => c.company === companyB);
+  if (!statsA || !statsB) { state.companyView = "index"; return renderCompaniesIndex(); }
+
+  const decisionsA = state.decisions.filter(d => d.company === companyA);
+  const decisionsB = state.decisions.filter(d => d.company === companyB);
+  const keyOf = (d) => `${d.topic}:${d.subject}`;
+  const mapA = new Map(decisionsA.map(d => [keyOf(d), d]));
+  const mapB = new Map(decisionsB.map(d => [keyOf(d), d]));
+  const sharedKeys = [...mapA.keys()].filter(k => mapB.has(k));
+  const onlyA = decisionsA.filter(d => !mapB.has(keyOf(d)));
+  const onlyB = decisionsB.filter(d => !mapA.has(keyOf(d)));
+  const tagsA = getCompanyTags(decisionsA);
+  const tagsB = getCompanyTags(decisionsB);
+
+  const profileCard = (name, stats, tags) => `
+    <div class="bg-white border border-[#e8e4d8] rounded-[14px] p-4">
+      <span class="font-mono text-[11px] text-[#a9a497] uppercase tracking-[0.08em]">perfil · ${stats.count} decisões</span>
+      <div class="font-extrabold text-[15px] text-[#16140f] mt-2 flex items-center gap-2 flex-wrap">
+        <span class="${PILL}" style="background:${escapeHtml(stats.color)};color:${escapeHtml(stats.tone)}">${escapeHtml(name)}</span>
+        <span class="text-[#6f6a5e] font-semibold text-[13px]">${escapeHtml(getCompanyTagline(stats))}</span>
+      </div>
+      ${tags.length ? `<div class="flex gap-1.5 flex-wrap mt-2.5">${tags.map(t => `<span class="text-[12px] font-semibold text-[#46423a] bg-[#f3efe6] rounded-full px-2.5 py-[4px]">${escapeHtml(t)}</span>`).join("")}</div>` : ""}
+    </div>`;
+
+  const overlapSection = sharedKeys.length ? `
+    <div class="mb-6">
+      <span class="font-mono text-[11px] font-bold text-[#1a7a43] uppercase tracking-[0.08em]">onde se cruzam (${sharedKeys.length})</span>
+      <div class="flex flex-col gap-3 mt-3">
+        ${sharedKeys.map(k => {
+          const dA = mapA.get(k), dB = mapB.get(k);
+          const same = dA.verdict === dB.verdict;
+          const axis = CONFLICT_AXES[k] || null;
+          return `
+          <div class="border border-[#e8e4d8] rounded-[14px] overflow-hidden">
+            <div class="flex items-center gap-3 px-4 py-3 bg-[#faf8f2] border-b border-[#e8e4d8] flex-wrap">
+              <span class="font-bold text-[#16140f] text-[14px]">${escapeHtml(dA.subject)}</span>
+              <span class="font-mono text-[11px] text-[#a9a497]">${escapeHtml(dA.topic)}</span>
+              <span class="ml-auto text-[11px] font-bold px-2.5 py-1 rounded-[7px]" style="${same ? "color:#1a7a43;background:#dcf3e4" : "color:#9a4d12;background:#fbe9d6"}">${same ? "ambas " + verdictLabel(dA.verdict) : "divergem"}</span>
+            </div>
+            <div class="grid" style="grid-template-columns:1fr 1fr">
+              <div class="p-4 border-r border-[#efece3]">
+                <div class="flex items-center gap-2 mb-2"><span class="${PILL}" style="background:${escapeHtml(dA.color)};color:${escapeHtml(dA.tone)}">${escapeHtml(companyA)}</span><span class="font-mono text-[11px] text-[#a9a497]">${escapeHtml(dA.year)}</span></div>
+                <p class="text-[13px] text-[#46423a] m-0 leading-[1.55]">${escapeHtml(dA.reason)}</p>
+              </div>
+              <div class="p-4">
+                <div class="flex items-center gap-2 mb-2"><span class="${PILL}" style="background:${escapeHtml(dB.color)};color:${escapeHtml(dB.tone)}">${escapeHtml(companyB)}</span><span class="font-mono text-[11px] text-[#a9a497]">${escapeHtml(dB.year)}</span></div>
+                <p class="text-[13px] text-[#46423a] m-0 leading-[1.55]">${escapeHtml(dB.reason)}</p>
+              </div>
+            </div>
+            ${axis ? `<div class="px-4 py-3 border-t border-[#efece3] bg-[#eceaff] text-[13px] text-[#4a3fce]"><strong>o eixo:</strong> ${escapeHtml(axis)}</div>` : ""}
+          </div>`;
+        }).join("")}
+      </div>
+    </div>` :
+    `<p class="text-[#85827c] text-[13px] mb-6">nenhum tópico em comum entre as duas empresas ainda.</p>`;
+
+  return `
+    <button type="button" class="bg-transparent border-0 p-0 text-[#6f6a5e] text-[13px] font-semibold mb-4 hover:text-[#16140f] transition-colors cursor-pointer" data-company-back>← todas as empresas</button>
+    <div class="rounded-[18px] border border-[#e8e4d8] p-6">
+      <div class="flex items-center justify-center gap-4 flex-wrap mb-6">
+        <select data-compare-select-a class="bg-white border border-[#ddd9cf] rounded-[10px] text-[13px] font-bold px-3 py-2.5 outline-none cursor-pointer min-w-[160px]">
+          ${list.map(c => `<option value="${escapeHtml(c.company)}" ${c.company === companyA ? "selected" : ""}>${escapeHtml(c.company)}</option>`).join("")}
+        </select>
+        <span class="w-9 h-9 rounded-full bg-[#16140f] text-white flex items-center justify-center font-mono text-[12px] font-bold flex-none">vs</span>
+        <select data-compare-select-b class="bg-white border border-[#ddd9cf] rounded-[10px] text-[13px] font-bold px-3 py-2.5 outline-none cursor-pointer min-w-[160px]">
+          ${list.map(c => `<option value="${escapeHtml(c.company)}" ${c.company === companyB ? "selected" : ""}>${escapeHtml(c.company)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="grid gap-3 mb-6" style="grid-template-columns:1fr 1fr">
+        ${profileCard(companyA, statsA, tagsA)}
+        ${profileCard(companyB, statsB, tagsB)}
+      </div>
+      ${overlapSection}
+      <div class="grid gap-4" style="grid-template-columns:1fr 1fr">
+        <div>
+          <span class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">só de ${escapeHtml(companyA)}</span>
+          <div class="flex flex-col gap-2 mt-2.5">
+            ${onlyA.slice(0, 3).map(renderCompareOnlyCard).join("") || `<p class="text-[#a9a497] text-[12px]">sem decisões exclusivas.</p>`}
+          </div>
+        </div>
+        <div>
+          <span class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">só de ${escapeHtml(companyB)}</span>
+          <div class="flex flex-col gap-2 mt-2.5">
+            ${onlyB.slice(0, 3).map(renderCompareOnlyCard).join("") || `<p class="text-[#a9a497] text-[12px]">sem decisões exclusivas.</p>`}
+          </div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function renderCompanies() {
+  const root = $("[data-companies-view]");
+  if (!root) return;
+  if (state.companyView === "profile" && state.selectedCompany) {
+    root.innerHTML = renderCompanyProfile(state.selectedCompany);
+  } else if (state.companyView === "compare" && state.selectedCompany && state.compareCompany) {
+    root.innerHTML = renderCompanyCompare(state.selectedCompany, state.compareCompany);
+  } else {
+    state.companyView = "index";
+    root.innerHTML = renderCompaniesIndex();
+    renderCompaniesGrid();
+  }
+}
+
 function renderDetail(decision, pushUrl = true) {
   const header = $("[data-modal-header]");
   const initial = $("[data-modal-initial]");
@@ -716,7 +962,7 @@ function renderDetail(decision, pushUrl = true) {
     <div class="rounded-[12px] border border-[#e8e4d8] overflow-hidden">
       <div class="px-4 py-3 border-b border-[#f0ece4] flex items-center justify-between">
         <span class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">citar / incorporar</span>
-        <button class="text-[#5b4fe0] text-[12px] font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0" type="button" data-copy-md="${escapeHtml(btoa(mdSnippet))}">copiar markdown</button>
+        <button class="text-[#5b4fe0] text-[12px] font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0" type="button" data-copy-md="${escapeHtml(toB64(mdSnippet))}">copiar markdown</button>
       </div>
       <pre class="bg-[#16140f] m-0 px-4 py-3 text-[12px] leading-[1.7] overflow-x-auto" style="color:#d8d3c4;font-family:'JetBrains Mono',monospace">${escapeHtml(mdSnippet)}</pre>
     </div>
@@ -936,14 +1182,47 @@ function bindEvents() {
 
   document.addEventListener("change", (e) => {
     const select = e.target.closest("[data-company-select]");
-    if (!select) return;
-    state.filters.company = select.value || null;
-    state.displayLimit = 12;
-    renderResults();
-    const p = new URLSearchParams(location.search);
-    if (state.filters.company) p.set("co", state.filters.company); else p.delete("co");
-    const qs = p.toString();
-    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+    if (select) {
+      state.filters.company = select.value || null;
+      state.displayLimit = 12;
+      renderResults();
+      const p = new URLSearchParams(location.search);
+      if (state.filters.company) p.set("co", state.filters.company); else p.delete("co");
+      const qs = p.toString();
+      history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+      return;
+    }
+
+    const compareSelect = e.target.closest("[data-compare-select]");
+    if (compareSelect && compareSelect.value) {
+      state.compareCompany = compareSelect.value;
+      state.companyView = "compare";
+      renderCompanies();
+      return;
+    }
+
+    const compareA = e.target.closest("[data-compare-select-a]");
+    if (compareA) {
+      const val = compareA.value;
+      if (val === state.compareCompany) state.compareCompany = state.selectedCompany;
+      state.selectedCompany = val;
+      renderCompanies();
+      return;
+    }
+
+    const compareB = e.target.closest("[data-compare-select-b]");
+    if (compareB) {
+      const val = compareB.value;
+      if (val === state.selectedCompany) state.selectedCompany = state.compareCompany;
+      state.compareCompany = val;
+      renderCompanies();
+      return;
+    }
+  });
+
+  document.addEventListener("input", (e) => {
+    const search = e.target.closest("[data-companies-search]");
+    if (search) { state.companySearch = search.value; renderCompaniesGrid(); }
   });
 
   window.addEventListener("popstate", route);
@@ -1147,7 +1426,7 @@ function bindEvents() {
 
     const copyMdBtn = event.target.closest("[data-copy-md]");
     if (copyMdBtn) {
-      const md = atob(copyMdBtn.dataset.copyMd);
+      const md = fromB64(copyMdBtn.dataset.copyMd);
       navigator.clipboard.writeText(md).then(() => {
         const orig = copyMdBtn.textContent;
         copyMdBtn.textContent = "copiado!";
@@ -1159,6 +1438,23 @@ function bindEvents() {
     if (event.target.closest("[data-modal-close]")) { closeDetail(); return; }
     if (event.target === $("[data-modal-overlay]")) { closeDetail(); return; }
     if (event.target.closest("[data-export-saved]")) { exportSavedAsMarkdown(); return; }
+
+    const companyCard = event.target.closest("[data-company-card]");
+    if (companyCard) {
+      state.selectedCompany = companyCard.dataset.companyCard;
+      state.companyView = "profile";
+      renderCompanies();
+      return;
+    }
+
+    const companyBack = event.target.closest("[data-company-back]");
+    if (companyBack) {
+      state.companyView = "index";
+      state.selectedCompany = null;
+      state.compareCompany = null;
+      renderCompanies();
+      return;
+    }
 
     const card = event.target.closest("[data-detail-for]");
     if (card && !event.target.closest("[data-save], [data-conflict-for], a")) {
@@ -1184,6 +1480,7 @@ function bindEvents() {
       switchTab(tab.dataset.view);
       if (tab.dataset.view === "salvos") renderSaved();
       if (tab.dataset.view === "topicos") renderTopics();
+      if (tab.dataset.view === "empresas") renderCompanies();
     }
   });
 }

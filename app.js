@@ -1071,9 +1071,10 @@ function bindEvents() {
       const form = ctxBtn.closest("[data-context-form]");
       form.querySelectorAll(`.ctx-btn[data-ctx="${ctx}"]`).forEach((b) => {
         const active = b === ctxBtn;
+        b.setAttribute("aria-selected", active ? "true" : "false");
         b.style.background = active ? "#5b4fe0" : "transparent";
-        b.style.color = active ? "#fff" : "";
-        b.style.borderColor = active ? "#5b4fe0" : "";
+        b.style.color = active ? "#fff" : "#6b6555";
+        b.style.borderColor = active ? "#5b4fe0" : "#2a2519";
       });
       return;
     }
@@ -1082,8 +1083,8 @@ function bindEvents() {
     const evalBtn = event.target.closest("[data-ctx-evaluate]");
     if (evalBtn) {
       const form = evalBtn.closest("[data-context-form]");
-      const team = form.querySelector(".ctx-btn[data-ctx='team'][style*='#5b4fe0']")?.dataset.val || null;
-      const stage = form.querySelector(".ctx-btn[data-ctx='stage'][style*='#5b4fe0']")?.dataset.val || null;
+      const team = form.querySelector(".ctx-btn[data-ctx='team'][aria-selected='true']")?.dataset.val || null;
+      const stage = form.querySelector(".ctx-btn[data-ctx='stage'][aria-selected='true']")?.dataset.val || null;
       const rejectedId = evalBtn.dataset.rejected;
       const adoptedId = evalBtn.dataset.adopted;
       const rejectedD = state.decisions.find((d) => d.id === rejectedId);

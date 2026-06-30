@@ -134,6 +134,21 @@ const TAG_FLAT = {
   kept:     "rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#e8f1ff] text-[#2f7db6]",
 };
 
+const CONFLICT_AXES = {
+  "message-queue:Kafka":      "volume e escala × custo operacional e simplicidade",
+  "architecture:Microservices": "autonomia de times e deploy × simplicidade operacional",
+  "api-style:GraphQL":        "flexibilidade de query × complexidade de cache e schema",
+  "database:Postgres":        "consistência SQL × escala horizontal e sharding",
+  "language:Go":              "ecossistema e concorrência × latência de GC",
+  "language:TypeScript":      "type safety × velocidade de iteração",
+  "architecture:React Native":"code sharing × controle de plataforma nativa",
+  "deploy:Kubernetes":        "portabilidade e escalabilidade × complexidade operacional",
+  "api-style:gRPC":           "performance e tipagem forte × complexidade de integração",
+  "database:MongoDB":         "schema flexível × consistência transacional",
+  "database:Elasticsearch":   "busca full-text e analytics × operação e consistência",
+  "deploy:Serverless":        "elasticidade automática × latência de cold start e custo em escala",
+};
+
 // ── render helpers ────────────────────────────────────────────────────────────
 
 function renderChips(rootSelector) {
@@ -233,23 +248,33 @@ function renderConflict(pair) {
   const [rejected, adopted] = pair;
   if (banner) {
     banner.innerHTML = `
-      <div class="flex items-center justify-between gap-4 rounded-[14px] px-5 py-4 mb-4" style="background:linear-gradient(90deg,#fff6e8,#fdeede);border:1px solid #f1d9b8">
-        <div class="flex items-center gap-2.5">
-          <span class="text-[#9a4d12] text-[13px] font-bold">⚡ conflito detectado</span>
-          <span class="text-[#b8875a] text-[13px]">— ${escapeHtml(rejected.company)} vs ${escapeHtml(adopted.company)}</span>
+      <div class="flex items-center justify-between gap-4 rounded-[14px] px-5 py-[13px] mb-4" style="background:linear-gradient(90deg,#fff6e8,#fdeede);border:1px solid #f1d9b8">
+        <div>
+          <div class="flex items-center gap-2 mb-[3px]">
+            <span class="text-[#9a4d12] text-[13px] font-bold">⚡ conflito detectado</span>
+            <span class="text-[#b8875a] text-[13px]">— ${escapeHtml(rejected.company)} vs ${escapeHtml(adopted.company)}</span>
+          </div>
+          <p class="text-[#c09070] text-[12px] m-0">a mesma escolha, veredictos opostos. compare o porquê.</p>
         </div>
-        <button class="text-white text-[13px] font-bold px-4 py-[7px] rounded-[9px] cursor-pointer border-0 hover:opacity-90 transition-opacity" style="background:#9a4d12" type="button" data-scroll-conflict>ver conflito →</button>
+        <button class="text-white text-[13px] font-semibold px-4 py-[8px] rounded-[9px] cursor-pointer border-0 hover:opacity-90 transition-opacity flex-none" style="background:#9a4d12" type="button" data-scroll-conflict>ver conflito →</button>
       </div>`;
   }
+  const axisKey = `${rejected.topic}:${rejected.subject}`;
+  const axis = CONFLICT_AXES[axisKey] || null;
   panel.style.display = "";
   panel.className = "bg-[#16140f] rounded-[20px] mt-7 p-7";
   panel.innerHTML = `
-    <h2 class="text-[1.1rem] font-bold mb-[22px] mt-0 text-white">⚡ conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
+    <h2 class="text-[1.1rem] font-bold mb-2 mt-0 text-white">⚡ conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
+    <p class="text-[#6b6555] text-[13px] leading-[1.55] mb-[22px] mt-0">a mesma decisão técnica levou dois times a veredictos opostos. a diferença não está na tecnologia — está no contexto.</p>
     <div class="grid items-start gap-[18px]" style="grid-template-columns:1fr auto 1fr">
       ${renderConflictSide(rejected, true)}
       <span class="text-[#6b6555] text-[0.8rem] font-bold text-center mt-8">vs</span>
       ${renderConflictSide(adopted, true)}
-    </div>`;
+    </div>
+    ${axis ? `<div class="flex items-center gap-3 mt-6 pt-5 border-t border-[#2a2519]">
+      <span class="font-mono text-[11px] font-bold text-[#6b6555] uppercase tracking-[0.1em] flex-none">O EIXO</span>
+      <span class="text-[#a09880] text-[13px]">${escapeHtml(axis)}</span>
+    </div>` : ""}`;
 }
 
 function filterChipCls(isActive, verdict) {

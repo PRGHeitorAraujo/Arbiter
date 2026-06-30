@@ -251,11 +251,12 @@ function renderFilterBar() {
         ${verdicts.map((v) => `<button class="${filterChipCls(state.filters.verdict === v, v)}" type="button" data-filter="verdict" data-value="${escapeHtml(v)}">${escapeHtml(verdictLabel(v))}</button>`).join("")}
       </div>
     </div>
-    <div class="flex items-center gap-2.5 flex-wrap">
+    <div class="flex items-center gap-2.5">
       <span class="text-[#85827c] text-[0.75rem] font-black tracking-[0.06em] min-w-[52px] uppercase">empresa</span>
-      <div class="flex flex-wrap gap-1.5">
-        ${companies.map((c) => `<button class="${filterChipCls(state.filters.company === c, null)}" type="button" data-filter="company" data-value="${escapeHtml(c)}">${escapeHtml(c)}</button>`).join("")}
-      </div>
+      <select class="bg-white border border-[#dfdcd4] rounded-lg text-[0.82rem] font-extrabold text-[#232323] px-3 py-1.5 cursor-pointer outline-none focus:border-[#534ab7] transition-colors" data-company-select>
+        <option value="">todas</option>
+        ${companies.map((c) => `<option value="${escapeHtml(c)}" ${state.filters.company === c ? "selected" : ""}>${escapeHtml(c)}</option>`).join("")}
+      </select>
     </div>`;
 }
 
@@ -655,6 +656,18 @@ function bindEvents() {
   bindSearch("[data-landing-search]");
   bindSearch("[data-app-search]");
 
+  document.addEventListener("change", (e) => {
+    const select = e.target.closest("[data-company-select]");
+    if (!select) return;
+    state.filters.company = select.value || null;
+    state.displayLimit = 12;
+    renderResults();
+    const p = new URLSearchParams(location.search);
+    if (state.filters.company) p.set("co", state.filters.company); else p.delete("co");
+    const qs = p.toString();
+    history.replaceState(null, "", location.pathname + (qs ? "?" + qs : ""));
+  });
+
   window.addEventListener("popstate", route);
 
   $("[data-palette-input]").addEventListener("input", (e) => renderPaletteResults(e.target.value));
@@ -848,7 +861,6 @@ function updateDarkToggle() {
 
 async function init() {
   renderChips("[data-chip-row]");
-  renderChips("[data-app-chips]");
   bindEvents();
   initDarkMode();
 

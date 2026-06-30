@@ -9,24 +9,25 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
         theme: {
           extend: {
             colors: {
-              brand: "#534ab7",
-              "brand-light": "#edeaff",
-              ink: "#232323",
-              muted: "#85827c",
+              brand: "#5b4fe0",
+              "brand-light": "#eceaff",
+              ink: "#16140f",
+              muted: "#6f6a5e",
               surface: "#ffffff",
-              panel: "#f0eee8",
-              line: "#dfdcd4",
-              bg: "#faf9f6",
+              panel: "#ece9df",
+              line: "#e0dccf",
+              bg: "#f4f1ea",
             },
             fontFamily: {
-              sans: ["Inter", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+              sans: ["Archivo", "ui-sans-serif", "system-ui", "-apple-system", "sans-serif"],
+              mono: ["JetBrains Mono", "ui-monospace", "SFMono-Regular", "Menlo", "monospace"],
             },
           },
         },
@@ -35,10 +36,10 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
 
-  <body class="bg-[#faf9f6] text-[#232323] font-sans">
+  <body class="bg-[#f4f1ea] text-[#16140f] font-sans">
 
     <!-- ── SITE HEADER ──────────────────────────────────────────────────────── -->
-    <header class="flex items-center justify-between max-w-[1100px] mx-auto min-h-[86px] px-4 border-b border-[#dfdcd4]" id="top">
+    <header class="flex items-center justify-between max-w-[1100px] mx-auto min-h-[86px] px-4 border-b border-[#e0dccf]" id="top">
       <a class="inline-flex items-center gap-2.5 font-black no-underline" href="#top" aria-label="Arbiter inicio">
         <svg class="drop-shadow-[0_4px_12px_rgba(83,74,183,0.32)] flex-none" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
           <rect width="32" height="32" rx="7" fill="#534ab7"/>
@@ -52,19 +53,17 @@
         </svg>
         <span>arbiter</span>
       </a>
-      <nav class="flex items-center gap-6 text-[#85827c] text-[0.94rem] font-bold" aria-label="principal">
-        <a class="hover:text-[#232323] transition-colors duration-150" href="#how">como funciona</a>
-        <button class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#dfdcd4] bg-white text-[#85827c] hover:bg-[#f0eee8] transition-colors" type="button" data-dark-toggle title="modo escuro"></button>
+      <nav class="flex items-center gap-6 text-[#6f6a5e] text-[0.94rem] font-medium" aria-label="principal">
+        <a class="hover:text-[#16140f] transition-colors duration-150" href="#how">como funciona</a>
+        <button class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#e0dccf] bg-white text-[#6f6a5e] hover:bg-[#ece9df] transition-colors" type="button" data-dark-toggle title="modo escuro"></button>
       </nav>
     </header>
 
     <main>
       <!-- ── HERO ─────────────────────────────────────────────────────────── -->
       <section class="relative mx-auto max-w-[920px] overflow-hidden px-4 pt-[72px] pb-11 text-center" aria-labelledby="hero-title">
-        <!-- gradient blob -->
-        <div class="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true">
-          <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[500px] rounded-full bg-[#534ab7] opacity-[0.055] blur-3xl"></div>
-        </div>
+        <!-- gradient -->
+        <div class="absolute inset-0 -z-10 pointer-events-none" aria-hidden="true" style="background:radial-gradient(120% 80% at 50% 0%, #efece3 0%, #f4f1ea 62%);"></div>
 
         <!-- orbit -->
         <div class="relative h-24 mb-2 mx-auto max-w-[560px]" aria-hidden="true">
@@ -76,26 +75,21 @@
           </div>
         </div>
 
-        <p class="inline-block bg-[#edeaff] text-[#534ab7] text-[0.83rem] font-black rounded-full px-[18px] py-2 mb-[22px]">decisoes reais de engenharia</p>
-        <h1 id="hero-title" class="text-[clamp(2.3rem,7vw,4.52rem)] leading-[1.06] font-black mx-auto max-w-[820px] mb-7 mt-0 tracking-tight">O que times como stripe, discord e shopify decidiram - e por que</h1>
-        <p class="text-[#85827c] text-[1.12rem] font-bold leading-[1.55] mx-auto max-w-[560px] mb-6 mt-0">
-          descreva seu problema com contexto — time, escala, tecnologia. o arbiter busca quem ja decidiu o mesmo.
+        <p class="inline-block bg-[#eceaff] text-[#4a3fce] text-[0.83rem] font-bold rounded-full px-[18px] py-2 mb-[22px]">decisões reais de engenharia</p>
+        <h1 id="hero-title" class="text-[clamp(2.1rem,6.5vw,3.75rem)] leading-[1.0] font-black mx-auto max-w-[820px] mb-7 mt-0 tracking-[-0.035em]">o que <span style="color:#5b4fe0;">stripe, discord</span> e shopify decidiram — e por quê</h1>
+        <p class="text-[#6f6a5e] text-[1.05rem] font-medium leading-[1.55] mx-auto max-w-[480px] mb-6 mt-0">
+          descreva seu problema com contexto — time, escala, tecnologia. o arbiter busca quem já decidiu o mesmo.
         </p>
         <form class="mx-auto max-w-[680px] grid gap-3 grid-cols-[minmax(0,1fr)_auto] mb-4" data-landing-search>
           <input
             type="search"
             name="query"
-            placeholder="ex: sistema de notificacoes, 50k usuarios, time de 3 devs, latencia toleravel de 2s..."
-            class="bg-white border border-[#ccc8bd] rounded-lg text-[#232323] font-bold min-h-[56px] outline-none px-5 w-full shadow-sm focus:border-[#534ab7] focus:shadow-[0_0_0_4px_rgba(83,74,183,0.12)] transition-shadow placeholder:text-[#aaa69c]"
+            placeholder="ex: sistema de notificações, 50k usuários, time de 3 devs..."
+            class="bg-white border border-[#d8d4c9] rounded-xl text-[#16140f] font-medium min-h-[56px] outline-none px-5 w-full shadow-sm focus:border-[#5b4fe0] focus:shadow-[0_0_0_4px_rgba(91,79,224,0.12)] transition-shadow placeholder:text-[#a9a497]"
           />
-          <button class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[56px] px-7 bg-[#534ab7] border border-[#534ab7] text-white hover:bg-[#4540a0] transition-colors duration-150 whitespace-nowrap" type="submit">buscar decisoes</button>
+          <button class="inline-flex items-center justify-center rounded-xl font-bold min-h-[56px] px-7 bg-[#5b4fe0] border border-[#5b4fe0] text-white hover:bg-[#4a40cc] transition-colors duration-150 whitespace-nowrap" type="submit">buscar decisões</button>
         </form>
         <div class="flex flex-wrap gap-2 justify-center mb-7" data-chip-row></div>
-        <ul class="text-[#85827c] flex flex-wrap text-[0.88rem] font-bold gap-12 justify-center list-none m-0 p-0" aria-label="diferenciais curtos">
-          <li class="before:content-['✓'] before:text-[#42b883] before:font-black before:mr-[18px]">fontes reais linkadas</li>
-          <li class="before:content-['✓'] before:text-[#42b883] before:font-black before:mr-[18px]">conflitos explicitos</li>
-          <li class="before:content-['✓'] before:text-[#42b883] before:font-black before:mr-[18px]">sem respostas genericas</li>
-        </ul>
       </section>
 
       <!-- ── FEATURES ──────────────────────────────────────────────────────── -->
@@ -161,17 +155,17 @@
           <h2 class="sr-only" id="app-title">Consultar decisoes</h2>
           <form class="grid gap-3 grid-cols-[minmax(0,1fr)_auto]" data-app-search>
             <input type="search" name="query" data-query-input
-              class="bg-white border border-[#ccc8bd] rounded-lg text-[#232323] font-bold min-h-[48px] outline-none px-[18px] w-full focus:border-[#534ab7] focus:shadow-[0_0_0_4px_rgba(83,74,183,0.12)] transition-shadow placeholder:text-[#aaa69c]"
+              class="bg-white border border-[#d8d4c9] rounded-xl text-[#16140f] font-medium min-h-[48px] outline-none px-[18px] w-full focus:border-[#5b4fe0] focus:shadow-[0_0_0_4px_rgba(91,79,224,0.12)] transition-shadow placeholder:text-[#a9a497]"
             />
-            <button class="inline-flex items-center justify-center rounded-lg font-extrabold min-h-[48px] px-[22px] bg-[#534ab7] border border-[#534ab7] text-white min-w-[178px] hover:bg-[#4540a0] transition-colors duration-150" type="submit">buscar decisoes</button>
+            <button class="inline-flex items-center justify-center rounded-xl font-bold min-h-[48px] px-[22px] bg-[#5b4fe0] border border-[#5b4fe0] text-white min-w-[178px] hover:bg-[#4a40cc] transition-colors duration-150" type="submit">buscar decisões</button>
           </form>
           <div class="flex flex-wrap items-center gap-2 mt-2 min-h-[28px]" data-history-row></div>
-          <div class="border-t border-[#dfdcd4] flex flex-col gap-2.5 mt-[18px] pt-4" data-filter-bar></div>
-          <div class="flex items-center justify-between my-6" data-result-meta>
-            <strong class="text-[#6f6b64] font-bold" data-result-count></strong>
+          <div class="border-t border-[#e0dccf] flex flex-col gap-2.5 mt-[18px] pt-4" data-filter-bar></div>
+          <div data-conflict-banner></div>
+          <div class="flex items-center justify-between my-5" data-result-meta>
+            <strong class="text-[#16140f] font-bold" data-result-count></strong>
             <div class="flex items-center gap-3">
-              <button class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#dfdcd4] bg-white text-[#85827c] hover:bg-[#f0eee8] transition-colors" type="button" data-view-toggle title="modo compacto"></button>
-              <span data-conflict-pill></span>
+              <button class="flex items-center justify-center w-8 h-8 rounded-lg border border-[#e0dccf] bg-white text-[#6f6a5e] hover:bg-[#ece9df] transition-colors" type="button" data-view-toggle title="modo grade"></button>
             </div>
           </div>
           <div data-comparison></div>

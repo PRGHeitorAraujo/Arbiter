@@ -38,7 +38,6 @@ html.dark [role="tablist"] { background: #1e1e1e !important; }
 html.dark .tab { color: #9e9a93 !important; }
 html.dark .tab.active { background: #2e2e2e !important; color: #e0ddd6 !important; }
 html.dark [data-detail-for],
-html.dark [data-conflict-panel] article,
 html.dark [data-modal-card] { background: #1c1c1c !important; border-color: #2a2a2a !important; }
 html.dark [data-modal-body] { color: #e0ddd6 !important; }
 html.dark [data-modal-body] dt { color: #9e9a93 !important; }
@@ -52,8 +51,8 @@ html.dark [data-modal-body] a { color: #7b8cde !important; }
 html.dark [data-modal-title] { color: #e0ddd6 !important; }
 html.dark [data-detail-for] p { color: #9e9a93 !important; }
 html.dark [data-detail-for] > div:last-child { border-color: #2a2a2a !important; }
-html.dark [data-conflict-panel] { background: #1e1e1e !important; border-color: #2a2a2a !important; }
-html.dark [data-conflict-panel] article { background: #272727 !important; }
+/* conflict panel is always dark (#16140f) — no dark mode override needed */
+html.dark [data-filter-bar] button[class*="bg-white"] { background: #1c1c1c !important; border-color: #2a2a2a !important; color: #9e9a93 !important; }
 html.dark [data-palette-overlay] > div { background: #1c1c1c !important; border-color: #2a2a2a !important; }
 html.dark [data-palette-results] button:hover { background: #252525 !important; }
 html.dark [data-topics-content] section { border-color: #2a2a2a !important; }

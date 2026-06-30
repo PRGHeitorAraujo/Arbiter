@@ -18,7 +18,7 @@ const state = {
   saved: new Set((() => { try { return JSON.parse(localStorage.getItem("arbiter.saved") || "[]"); } catch { return []; } })()),
   slugMap: new Map(),
   displayLimit: 12,
-  viewMode: "grid",
+  viewMode: "compact",
   hasConflict: new Set(),
 };
 
@@ -116,22 +116,22 @@ function getConflictPool() {
 
 // ── class constants ───────────────────────────────────────────────────────────
 
-const CHIP = "bg-white border border-[#dedbd2] rounded-full text-[#8b877e] cursor-pointer text-[0.82rem] font-extrabold min-h-[29px] px-[17px] hover:bg-[#f0eee8] transition-colors duration-150";
-const TEXT_BTN = "bg-transparent border-0 text-[#817d74] cursor-pointer text-[0.82rem] font-black p-0 hover:text-[#232323] transition-colors duration-150";
-const PILL = "rounded-md text-[0.78rem] font-black px-2.5 py-1.5";
-const YEAR = "text-[#a19d95] text-[0.82rem] font-extrabold";
-const SRC_LINK = "bg-[#eaf3ff] rounded-lg text-[#4d81b2] inline-flex text-[0.82rem] font-black mt-2 px-3 py-[7px] hover:bg-blue-100 transition-colors";
+const CHIP = "bg-white border border-[#e0dccf] rounded-full text-[#6f6a5e] cursor-pointer text-[0.82rem] font-semibold min-h-[29px] px-[17px] hover:bg-[#ece9df] transition-colors duration-150";
+const TEXT_BTN = "bg-transparent border-0 text-[#6f6a5e] cursor-pointer text-[13px] font-semibold p-0 hover:text-[#16140f] transition-colors duration-150";
+const PILL = "text-[12px] font-bold px-[10px] py-[4px] rounded-[7px]";
+const YEAR = "font-mono text-[12px] text-[#a9a497]";
+const SRC_LINK = "bg-[#eceaff] rounded-[9px] text-[#4a3fce] inline-flex text-[13px] font-semibold mt-2 px-3 py-[7px] hover:bg-[#e0dbff] transition-colors";
 
 const TAG = {
-  adopted: "ml-auto rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e6f4df] text-[#47771d]",
-  rejected: "ml-auto rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#fff3d8] text-[#9c6414]",
-  kept:     "ml-auto rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e8f1ff] text-[#2f679b]",
+  adopted: "ml-auto rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#dcf3e4] text-[#1a7a43]",
+  rejected: "ml-auto rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#fbe9d6] text-[#b4571c]",
+  kept:     "ml-auto rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#e8f1ff] text-[#2f7db6]",
 };
 
 const TAG_FLAT = {
-  adopted: "rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e6f4df] text-[#47771d]",
-  rejected: "rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#fff3d8] text-[#9c6414]",
-  kept:     "rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3 bg-[#e8f1ff] text-[#2f679b]",
+  adopted: "rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#dcf3e4] text-[#1a7a43]",
+  rejected: "rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#fbe9d6] text-[#b4571c]",
+  kept:     "rounded-[7px] inline-flex items-center text-[12px] font-bold px-[11px] py-[4px] bg-[#e8f1ff] text-[#2f7db6]",
 };
 
 // ── render helpers ────────────────────────────────────────────────────────────
@@ -160,20 +160,20 @@ function renderSources(rootSelector) {
 function renderDecisionCard(decision, inSavedPanel = false) {
   const isSaved = state.saved.has(decision.id);
   return `
-    <article class="card-appear bg-white border border-[#dfdcd4] rounded-xl shadow-sm cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 px-7 pt-7 pb-[18px]" data-detail-for="${escapeHtml(decision.id)}">
-      <div class="flex items-center gap-2.5 mb-[18px]">
-        <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+    <article class="card-appear bg-white border border-[#e8e4d8] rounded-[16px] shadow-sm cursor-pointer transition-all duration-150 hover:shadow-md hover:-translate-y-0.5 px-[22px] pt-[22px] pb-[16px]" data-detail-for="${escapeHtml(decision.id)}">
+      <div class="flex items-center gap-2.5 mb-4">
+        <span class="${PILL} flex-none" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
         <span class="${YEAR}">${escapeHtml(decision.year)}</span>
-        ${decision.revisedAt ? `<span class="text-[0.72rem] font-black px-2 py-[2px] rounded-full bg-[#fff3d8] text-[#9c6414]">rev. ${escapeHtml(decision.revisedAt)}</span>` : ""}
+        ${decision.revisedAt ? `<span class="text-[11px] font-bold px-2 py-[2px] rounded-[5px] bg-[#fff6e8] text-[#9a4d12]">rev. ${escapeHtml(decision.revisedAt)}</span>` : ""}
         <span class="${escapeHtml(TAG[decision.verdict] || TAG.kept)}">${escapeHtml(verdictLabel(decision.verdict))}</span>
       </div>
-      <h3 class="text-[1.12rem] font-bold mb-2 mt-0">${escapeHtml(decision.title)}</h3>
-      <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] min-h-[54px] m-0">${escapeHtml(decision.reason)}</p>
-      <div class="border-t border-[#ece9e2] flex gap-[18px] mt-[18px] pt-[14px]">
-        <a class="${TEXT_BTN}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">ver fonte <span class="opacity-40 font-extrabold">${escapeHtml(sourceType(decision.sourceUrl))}</span></a>
+      <h3 class="text-[1.05rem] font-bold mb-2 mt-0 text-[#16140f] leading-snug">${escapeHtml(decision.title)}</h3>
+      <p class="text-[#6f6a5e] text-[0.9rem] font-medium leading-relaxed min-h-[50px] m-0">${escapeHtml(decision.reason)}</p>
+      <div class="border-t border-[#e8e4d8] flex gap-4 mt-4 pt-3.5">
+        <a class="${TEXT_BTN}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">ver fonte <span class="opacity-40 text-[0.78rem]">${escapeHtml(sourceType(decision.sourceUrl))}</span></a>
         ${state.hasConflict.has(decision.id) ? `<button class="${TEXT_BTN}" type="button" data-conflict-for="${escapeHtml(decision.id)}">ver conflito</button>` : ""}
-        <button class="bg-transparent border-0 cursor-pointer text-[0.82rem] font-black p-0 transition-colors duration-150 ${isSaved ? "text-[#534ab7]" : "text-[#817d74] hover:text-[#232323]"}" type="button" data-save="${escapeHtml(decision.id)}">
-          ${isSaved ? (inSavedPanel ? "— remover" : "salvo") : "+ salvar"}
+        <button class="bg-transparent border-0 cursor-pointer text-[13px] font-semibold p-0 transition-colors duration-150 ${isSaved ? "text-[#5b4fe0]" : "text-[#a9a497] hover:text-[#16140f]"}" type="button" data-save="${escapeHtml(decision.id)}">
+          ${isSaved ? (inSavedPanel ? "— remover" : "salvo ✓") : "+ salvar"}
         </button>
       </div>
     </article>`;
@@ -182,56 +182,79 @@ function renderDecisionCard(decision, inSavedPanel = false) {
 function renderCompactCard(decision) {
   const isSaved = state.saved.has(decision.id);
   return `
-    <div class="flex items-center gap-3 bg-white border border-[#dfdcd4] rounded-lg px-4 py-2.5 cursor-pointer hover:bg-[#f8f7f3] transition-colors" data-detail-for="${escapeHtml(decision.id)}">
-      <span class="${PILL} flex-none" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+    <div class="flex items-center gap-4 bg-white border border-[#e8e4d8] rounded-[13px] px-[18px] py-[14px] cursor-pointer hover:bg-[#faf9f7] transition-colors" data-detail-for="${escapeHtml(decision.id)}">
+      <span class="${PILL} flex-none whitespace-nowrap" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
       <span class="${YEAR} flex-none">${escapeHtml(decision.year)}</span>
-      ${decision.revisedAt ? `<span class="text-[0.68rem] font-black px-1.5 py-[1px] rounded-full bg-[#fff3d8] text-[#9c6414] flex-none">rev.</span>` : ""}
-      <span class="font-bold text-[0.9rem] flex-1 truncate">${escapeHtml(decision.title)}</span>
+      ${decision.revisedAt ? `<span class="text-[11px] font-bold px-1.5 py-[1px] rounded-[5px] bg-[#fff6e8] text-[#9a4d12] flex-none">rev.</span>` : ""}
+      <span class="font-semibold text-[15px] text-[#16140f] flex-1 truncate leading-snug">${escapeHtml(decision.title)}</span>
       <span class="${TAG_FLAT[decision.verdict] || TAG_FLAT.kept} flex-none">${escapeHtml(verdictLabel(decision.verdict))}</span>
-      <a class="text-[#4d81b2] text-[0.78rem] font-black hover:underline flex-none" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(sourceType(decision.sourceUrl))}</a>
-      <button class="bg-transparent border-0 cursor-pointer text-[0.78rem] font-black p-0 flex-none transition-colors ${isSaved ? "text-[#534ab7]" : "text-[#a19d95] hover:text-[#232323]"}" type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo" : "salvar"}</button>
+      <a class="text-[#5b4fe0] text-[13px] font-semibold hover:underline flex-none" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(sourceType(decision.sourceUrl))} ↗</a>
+      <button class="bg-transparent border-0 cursor-pointer text-[13px] font-semibold p-0 flex-none transition-colors ${isSaved ? "text-[#5b4fe0]" : "text-[#a9a497] hover:text-[#16140f]"}" type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo ✓" : "salvar"}</button>
     </div>`;
 }
 
-function renderConflictSide(decision) {
+function renderConflictSide(decision, dark = false) {
+  if (dark) {
+    const borderColor = decision.verdict === "rejected" ? "#e0863c" : "#4ea36b";
+    return `
+      <article class="bg-[#1f1c16] rounded-[14px] p-[22px] cursor-pointer hover:bg-[#252015] transition-colors" style="border-top:3px solid ${borderColor}" data-detail-for="${escapeHtml(decision.id)}">
+        <div class="flex items-center gap-2.5 mb-[18px]">
+          <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
+          <span class="font-mono text-[12px] text-[#6b6555]">${escapeHtml(decision.year)}</span>
+        </div>
+        <h3 class="text-[1.05rem] font-bold mb-2 mt-0 text-white">${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
+        <p class="text-[#a09880] text-[0.9rem] leading-[1.5] m-0">${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
+        <a class="bg-[#2a2519] rounded-[9px] text-[#d4a96a] inline-flex text-[13px] font-semibold mt-3 px-3 py-[7px] hover:bg-[#332e1e] transition-colors" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(hostname(decision.sourceUrl))}</a>
+      </article>`;
+  }
   return `
-    <article class="bg-white rounded-lg p-[22px] cursor-pointer hover:shadow-md transition-shadow duration-150" data-detail-for="${escapeHtml(decision.id)}">
+    <article class="bg-white border border-[#e8e4d8] rounded-[13px] p-[22px] cursor-pointer hover:bg-[#faf9f7] transition-colors" data-detail-for="${escapeHtml(decision.id)}">
       <div class="flex items-center gap-2.5 mb-[18px]">
         <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
         <span class="${YEAR}">${escapeHtml(decision.year)}</span>
       </div>
-      <h3 class="text-[1.12rem] font-bold mb-2 mt-0">${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
-      <p class="text-[#85827c] text-[0.96rem] font-bold leading-[1.5] m-0">${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
+      <h3 class="text-[1.05rem] font-bold mb-2 mt-0 text-[#16140f]">${escapeHtml(verdictLabel(decision.verdict))} ${escapeHtml(decision.subject)}</h3>
+      <p class="text-[#6f6a5e] text-[0.9rem] leading-[1.5] m-0">${escapeHtml(decision.context)}. ${escapeHtml(decision.reason)}</p>
       <a class="${SRC_LINK}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(hostname(decision.sourceUrl))}</a>
     </article>`;
 }
 
 function renderConflict(pair) {
   const panel = $("[data-conflict-panel]");
+  const banner = $("[data-conflict-banner]");
   if (!pair) {
-    panel.hidden = true;
+    panel.style.display = "none";
     panel.innerHTML = "";
-    $("[data-conflict-pill]").innerHTML = "";
+    if (banner) banner.innerHTML = "";
     return;
   }
   const [rejected, adopted] = pair;
-  $("[data-conflict-pill]").innerHTML = `<span class="bg-[#fff1d5] text-[#a0640e] rounded-full inline-flex items-center text-[0.78rem] font-black min-h-[25px] px-3">conflito detectado — ${escapeHtml(rejected.company.toLowerCase())} vs ${escapeHtml(adopted.company.toLowerCase())}</span>`;
-  panel.hidden = false;
-  panel.className = "bg-[#f0eee8] border border-[#dfdcd4] rounded-xl mt-7 p-7";
+  if (banner) {
+    banner.innerHTML = `
+      <div class="flex items-center justify-between gap-4 rounded-[14px] px-5 py-4 mb-4" style="background:linear-gradient(90deg,#fff6e8,#fdeede);border:1px solid #f1d9b8">
+        <div class="flex items-center gap-2.5">
+          <span class="text-[#9a4d12] text-[13px] font-bold">⚡ conflito detectado</span>
+          <span class="text-[#b8875a] text-[13px]">— ${escapeHtml(rejected.company)} vs ${escapeHtml(adopted.company)}</span>
+        </div>
+        <button class="text-white text-[13px] font-bold px-4 py-[7px] rounded-[9px] cursor-pointer border-0 hover:opacity-90 transition-opacity" style="background:#9a4d12" type="button" data-scroll-conflict>ver conflito →</button>
+      </div>`;
+  }
+  panel.style.display = "";
+  panel.className = "bg-[#16140f] rounded-[20px] mt-7 p-7";
   panel.innerHTML = `
-    <h2 class="text-[1.18rem] font-black mb-[22px] mt-0">conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
-    <div class="grid items-center gap-[22px]" style="grid-template-columns:1fr auto 1fr">
-      ${renderConflictSide(rejected)}
-      <span class="text-[#9f9a90] text-[0.8rem] font-black text-center">vs</span>
-      ${renderConflictSide(adopted)}
+    <h2 class="text-[1.1rem] font-bold mb-[22px] mt-0 text-white">⚡ conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>
+    <div class="grid items-start gap-[18px]" style="grid-template-columns:1fr auto 1fr">
+      ${renderConflictSide(rejected, true)}
+      <span class="text-[#6b6555] text-[0.8rem] font-bold text-center mt-8">vs</span>
+      ${renderConflictSide(adopted, true)}
     </div>`;
 }
 
 function filterChipCls(isActive, verdict) {
-  const base = "rounded-full cursor-pointer text-[0.78rem] font-extrabold min-h-[26px] px-3 border transition-all duration-100";
-  if (!isActive) return `${base} bg-white border-[#dfdcd4] text-[#85827c]`;
-  const colors = { adopted: "bg-[#1c8a70] border-[#1c8a70]", rejected: "bg-[#a36f15] border-[#a36f15]", kept: "bg-[#2f7db6] border-[#2f7db6]" };
-  return `${base} ${colors[verdict] || "bg-[#232323] border-[#232323]"} text-white`;
+  const base = "rounded-[999px] cursor-pointer text-[0.78rem] font-semibold min-h-[26px] px-3 border transition-all duration-100";
+  if (!isActive) return `${base} bg-white border-[#ddd9cf] text-[#6f6a5e]`;
+  const colors = { adopted: "bg-[#1a7a43] border-[#1a7a43]", rejected: "bg-[#b4571c] border-[#b4571c]", kept: "bg-[#2f7db6] border-[#2f7db6]" };
+  return `${base} ${colors[verdict] || "bg-[#16140f] border-[#16140f]"} text-white`;
 }
 
 function renderFilterBar() {
@@ -305,7 +328,10 @@ function renderResults() {
   const hasActiveSearch = !!(state.query || state.filters.topic || state.filters.verdict || state.filters.company);
 
   $("[data-query-input]").value = state.query;
-  $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
+  const countLabel = state.filters.topic
+    ? `${state.results.length} decisões · ${state.filters.topic}`
+    : `${state.results.length} decisões encontradas`;
+  $("[data-result-count]").textContent = countLabel;
 
   // usar style.display para sobrescrever classes Tailwind (hidden attr nao sobrescreve flex/inline-flex)
   $("[data-filter-bar]").style.display = hasActiveSearch ? "" : "none";
@@ -434,28 +460,31 @@ function renderDetail(decision, pushUrl = true) {
       <span class="${YEAR}">${escapeHtml(decision.year)}</span>
       <span class="${TAG[decision.verdict] || TAG.kept}">${escapeHtml(verdictLabel(decision.verdict))}</span>
     </div>
-    ${decision.revisedAt ? `<div class="bg-[#fff8e8] border border-[#f0d880] rounded-lg px-4 py-3">
-      <p class="text-[0.75rem] font-black text-[#9c6414] uppercase tracking-[0.06em] mb-1 mt-0">revisado em ${escapeHtml(decision.revisedAt)}</p>
-      ${decision.revisionNote ? `<p class="text-[#232323] font-bold text-[0.9rem] m-0">${escapeHtml(decision.revisionNote)}</p>` : ""}
+    ${decision.revisedAt ? `<div class="bg-[#fff8e8] border border-[#f0d880] rounded-[10px] px-4 py-3 flex items-start gap-2.5">
+      <span class="text-[#9c6414] text-[1rem] mt-[1px]">↻</span>
+      <div>
+        <p class="font-mono text-[0.72rem] font-bold text-[#9c6414] uppercase tracking-[0.08em] mb-1 mt-0">revisado em ${escapeHtml(decision.revisedAt)}</p>
+        ${decision.revisionNote ? `<p class="text-[#16140f] font-semibold text-[0.9rem] m-0">${escapeHtml(decision.revisionNote)}</p>` : ""}
+      </div>
     </div>` : ""}
     <dl class="detail-body">
-      <dt class="text-[#85827c] text-[0.78rem] font-black tracking-[0.06em] uppercase pt-[3px]">contexto</dt>
-      <dd class="text-[#232323] font-bold leading-[1.55] m-0">${escapeHtml(decision.context)}</dd>
-      <dt class="text-[#85827c] text-[0.78rem] font-black tracking-[0.06em] uppercase pt-[3px]">razao</dt>
-      <dd class="text-[#232323] font-bold leading-[1.55] m-0">${escapeHtml(decision.reason)}</dd>
+      <dt class="font-mono text-[#6f6a5e] text-[0.72rem] font-bold tracking-[0.08em] uppercase pt-[3px]">contexto</dt>
+      <dd class="text-[#16140f] font-semibold leading-[1.55] m-0">${escapeHtml(decision.context)}</dd>
+      <dt class="font-mono text-[#6f6a5e] text-[0.72rem] font-bold tracking-[0.08em] uppercase pt-[3px]">razão</dt>
+      <dd class="text-[#16140f] font-semibold leading-[1.55] m-0">${escapeHtml(decision.reason)}</dd>
     </dl>
     <div class="flex flex-wrap gap-2">
       ${decision.tags.map((t) => `<span class="${CHIP} cursor-default">${escapeHtml(t)}</span>`).join("")}
     </div>
     <div class="flex items-center gap-3">
-      <a class="${SRC_LINK}" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
-        ver fonte → ${escapeHtml(hostname(decision.sourceUrl))}
-        <span class="ml-1 opacity-50 text-[0.72rem]">${escapeHtml(sourceType(decision.sourceUrl))}</span>
+      <a class="bg-[#5b4fe0] text-white rounded-[10px] inline-flex items-center gap-1.5 text-[13px] font-semibold px-4 py-[9px] hover:bg-[#4a3fce] transition-colors" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
+        abrir fonte ↗
+        <span class="opacity-70 text-[0.72rem]">${escapeHtml(sourceType(decision.sourceUrl))}</span>
       </a>
-      <button class="bg-transparent border border-[#dedbd2] rounded-lg text-[#817d74] text-[0.82rem] font-black px-3 py-[7px] cursor-pointer hover:bg-[#f0eee8] transition-colors" type="button" data-copy-link="/d/${escapeHtml(decision.id)}">copiar link</button>
-      <button class="border rounded-lg text-[0.82rem] font-black px-3 py-[7px] cursor-pointer transition-colors"
-        style="${isSaved ? "color:#534ab7;background:#edeaff;border-color:#c7c0f0" : "color:#817d74;background:transparent;border-color:#dedbd2"}"
-        type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo" : "+ salvar"}</button>
+      <button class="border rounded-[10px] text-[13px] font-semibold px-4 py-[9px] cursor-pointer transition-colors"
+        style="${isSaved ? "color:#5b4fe0;background:#eceaff;border-color:#c7c0f0" : "color:#6f6a5e;background:white;border-color:#e0dccf"}"
+        type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo ✓" : "salvar para comparar"}</button>
+      <button class="bg-transparent border-0 text-[#a9a497] text-[13px] font-semibold cursor-pointer hover:text-[#16140f] transition-colors ml-auto" type="button" data-copy-link="/d/${escapeHtml(decision.id)}">copiar link</button>
     </div>
     ${conflictsHtml}
     ${relatedHtml}`;
@@ -792,6 +821,12 @@ function bindEvents() {
         modSaveBtn.style.background = nowSaved ? "#edeaff" : "transparent";
         modSaveBtn.style.borderColor = nowSaved ? "#c7c0f0" : "#dedbd2";
       }
+      return;
+    }
+
+    if (event.target.closest("[data-scroll-conflict]")) {
+      const panel = $("[data-conflict-panel]");
+      if (panel) panel.scrollIntoView({ behavior: "smooth", block: "start" });
       return;
     }
 

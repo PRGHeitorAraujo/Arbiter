@@ -307,8 +307,9 @@ function renderResults() {
   $("[data-query-input]").value = state.query;
   $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
 
-  $("[data-filter-bar]").hidden = !hasActiveSearch;
-  $("[data-result-meta]").hidden = !hasActiveSearch;
+  // usar style.display para sobrescrever classes Tailwind (hidden attr nao sobrescreve flex/inline-flex)
+  $("[data-filter-bar]").style.display = hasActiveSearch ? "" : "none";
+  $("[data-result-meta]").style.display = hasActiveSearch ? "" : "none";
 
   const grid = $("[data-decision-grid]");
   const isCompact = state.viewMode === "compact";
@@ -318,12 +319,8 @@ function renderResults() {
   const remaining = state.results.length - visible.length;
 
   if (!hasActiveSearch) {
-    grid.innerHTML = `
-      <div class="${isCompact ? "" : "col-span-2 "}text-center py-14">
-        <p class="font-black text-[1.05rem] mb-2 mt-0">busque por tecnologia, problema ou contexto</p>
-        <p class="text-[#85827c] font-bold text-[0.88rem] mb-6 mt-0">ex: banco de dados para analytics, migrar de monolito, sistema de notificacoes</p>
-        <button class="inline-flex items-center gap-1.5 rounded-lg font-extrabold text-[0.88rem] min-h-[38px] px-5 bg-white border border-[#dfdcd4] text-[#534ab7] hover:bg-[#edeaff] transition-colors" type="button" data-view="topicos">explorar tópicos →</button>
-      </div>`;
+    // sem busca ativa: mostra primeiras 12 decisoes como conteudo exploravel
+    grid.innerHTML = state.decisions.slice(0, 12).map(isCompact ? renderCompactCard : renderDecisionCard).join("");
   } else {
     grid.innerHTML = state.results.length
       ? visible.map(isCompact ? renderCompactCard : renderDecisionCard).join("")
@@ -335,7 +332,7 @@ function renderResults() {
 
   const verMaisBtn = $("[data-ver-mais]");
   if (verMaisBtn) {
-    verMaisBtn.hidden = !hasActiveSearch || remaining <= 0;
+    verMaisBtn.style.display = (hasActiveSearch && remaining > 0) ? "" : "none";
     if (remaining > 0) verMaisBtn.textContent = `ver mais ${remaining} decisões`;
   }
 

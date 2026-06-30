@@ -143,7 +143,9 @@ function renderChips(rootSelector) {
 }
 
 function renderSources(rootSelector) {
-  $(rootSelector).innerHTML = state.sources
+  const root = $(rootSelector);
+  if (!root) return;
+  root.innerHTML = state.sources
     .map(
       (s) => `
         <article class="flex items-center gap-2.5 bg-[#f0eee8] rounded-[7px] min-h-[58px] px-4 py-3">

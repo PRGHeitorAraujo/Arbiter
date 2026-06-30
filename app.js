@@ -405,6 +405,28 @@ function renderResults() {
     $("[data-comparison]").innerHTML = "";
     renderConflict(null);
   }
+
+  const companiesBar = $("[data-companies-bar]");
+  if (companiesBar) {
+    if (hasActiveSearch) {
+      companiesBar.innerHTML = "";
+    } else {
+      const companies = [...new Set(state.decisions.map((d) => d.company))].sort();
+      companiesBar.innerHTML = `
+        <div class="mt-10 pt-7 border-t border-[#e8e4d8]">
+          <p class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.1em] mb-4">${companies.length} empresas indexadas</p>
+          <div class="flex flex-wrap gap-2">
+            ${companies.map((c) => {
+              const d = state.decisions.find((dec) => dec.company === c);
+              return `<button class="inline-flex items-center gap-1.5 bg-white border border-[#e8e4d8] rounded-[8px] px-3 py-[6px] text-[13px] font-semibold text-[#6f6a5e] hover:bg-[#f4f1ea] hover:border-[#d0ccc0] transition-colors cursor-pointer" type="button" data-filter="company" data-value="${escapeHtml(c)}">
+                <span class="w-[8px] h-[8px] rounded-full flex-none" style="background:${escapeHtml(d?.color || "#ccc")}"></span>
+                ${escapeHtml(c)}
+              </button>`;
+            }).join("")}
+          </div>
+        </div>`;
+    }
+  }
 }
 
 function renderSaved() {

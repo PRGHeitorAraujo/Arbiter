@@ -47,6 +47,29 @@ function sourceType(url) {
   } catch { return "eng blog"; }
 }
 
+// 2d — peso de evidência: ADR=3, eng blog=2, thread=1
+function sourceWeight(url) {
+  const t = sourceType(url);
+  if (t === "ADR") return 3;
+  if (t === "eng blog") return 2;
+  return 1;
+}
+
+function sourceWeightDots(url) {
+  const w = sourceWeight(url);
+  const filled = "●".repeat(w);
+  const empty = '<span style="opacity:0.22">●</span>'.repeat(3 - w);
+  const color = w === 3 ? "#1a7a43" : w === 2 ? "#b4571c" : "#a9a497";
+  return `<span style="color:${color};font-size:11px;font-family:'JetBrains Mono',monospace;letter-spacing:-1px;">${filled}${empty}</span>`;
+}
+
+function sourceFreshness(year) {
+  const age = new Date().getFullYear() - parseInt(year, 10);
+  if (age <= 3) return { label: "↑ atual", color: "#1a7a43", bg: "#dcf3e4" };
+  if (age <= 6) return { label: "↗ recente", color: "#b4571c", bg: "#fbe9d6" };
+  return { label: "⚠ envelhecida", color: "#9a4d12", bg: "#fff6e0" };
+}
+
 function getSearchHistory() {
   try { return JSON.parse(localStorage.getItem("arbiter.history") || "[]"); } catch { return []; }
 }
@@ -205,9 +228,70 @@ function renderCompactCard(decision) {
       ${decision.revisedAt ? `<span class="text-[11px] font-bold px-1.5 py-[1px] rounded-[5px] bg-[#fff6e8] text-[#9a4d12] flex-none">rev.</span>` : ""}
       <span class="font-semibold text-[15px] text-[#16140f] flex-1 truncate leading-snug">${escapeHtml(decision.title)}</span>
       <span class="${TAG_FLAT[decision.verdict] || TAG_FLAT.kept} flex-none">${escapeHtml(verdictLabel(decision.verdict))}</span>
-      <a class="text-[#5b4fe0] text-[13px] font-semibold hover:underline flex-none" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(sourceType(decision.sourceUrl))} ↗</a>
+      <a class="text-[#5b4fe0] text-[13px] font-semibold hover:underline flex-none inline-flex items-center gap-1" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(sourceType(decision.sourceUrl))} ${sourceWeightDots(decision.sourceUrl)} ↗</a>
       ${state.hasConflict.has(decision.id) ? `<button class="bg-transparent border-0 cursor-pointer text-[13px] font-semibold p-0 flex-none text-[#a9a497] hover:text-[#9a4d12] transition-colors" type="button" data-conflict-for="${escapeHtml(decision.id)}">conflito</button>` : ""}
       <button class="bg-transparent border-0 cursor-pointer text-[13px] font-semibold p-0 flex-none transition-colors ${isSaved ? "text-[#5b4fe0]" : "text-[#a9a497] hover:text-[#16140f]"}" type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo ✓" : "salvar"}</button>
+    </div>`;
+}
+
+// 2c — mapa de consenso: barra divergente por tamanho implícito (pequeno/grande)
+function renderConsensusMap(topic, subject) {
+  const pool = state.decisions.filter((d) => d.topic === topic && d.subject === subject);
+  if (pool.length < 2) return "";
+  const adopted = pool.filter((d) => d.verdict === "adopted").length;
+  const rejected = pool.filter((d) => d.verdict === "rejected").length;
+  const total = adopted + rejected;
+  if (!total) return "";
+  const rejPct = Math.round((rejected / total) * 100);
+  const adoPct = 100 - rejPct;
+  return `
+    <div class="mt-6 pt-5 border-t border-[#2a2519]">
+      <div class="flex items-baseline gap-3 mb-4">
+        <span class="font-mono text-[11px] font-bold text-[#6b6555] uppercase tracking-[0.1em]">MAPA DE CONSENSO</span>
+        <span class="text-[#a09880] text-[12px]">${escapeHtml(subject)} · ${total} decisões na base</span>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="text-[12px] font-semibold text-[#b4571c] w-[68px] text-right">rejeitou</span>
+        <div class="flex flex-1 h-[22px] rounded-[6px] overflow-hidden">
+          <div class="h-full flex items-center justify-end px-2" style="width:${rejPct}%;background:#b4571c;">
+            ${rejPct > 20 ? `<span class="text-white text-[11px] font-bold">${rejected}</span>` : ""}
+          </div>
+          <div class="h-full flex items-center justify-start px-2" style="width:${adoPct}%;background:#1a7a43;">
+            ${adoPct > 20 ? `<span class="text-white text-[11px] font-bold">${adopted}</span>` : ""}
+          </div>
+        </div>
+        <span class="text-[12px] font-semibold text-[#1a7a43] w-[52px]">adotou</span>
+      </div>
+      ${rejPct > 60 ? `<p class="text-[#a09880] text-[12px] mt-3 mb-0">a maioria das empresas na base rejeitou — contexto importa.</p>` :
+        adoPct > 60 ? `<p class="text-[#a09880] text-[12px] mt-3 mb-0">a maioria na base adotou — mas o contexto pode inverter.</p>` :
+        `<p class="text-[#a09880] text-[12px] mt-3 mb-0">veredictos divididos — o contexto é o que decide.</p>`}
+    </div>`;
+}
+
+// 2a — formulário "aplicar ao meu contexto"
+function renderContextForm(rejected, adopted) {
+  return `
+    <div class="mt-6 pt-5 border-t border-[#2a2519]" data-context-form>
+      <span class="font-mono text-[11px] font-bold text-[#6b6555] uppercase tracking-[0.1em]">APLICAR AO MEU CONTEXTO</span>
+      <div class="mt-4 grid gap-3" style="grid-template-columns:1fr 1fr">
+        <div>
+          <div class="text-[12px] text-[#6b6555] mb-2">tamanho do time</div>
+          <div class="flex gap-2">
+            <button class="ctx-btn text-[12px] font-semibold px-3 py-[5px] rounded-[8px] border border-[#2a2519] text-[#6b6555] hover:border-[#5b4fe0] hover:text-[#5b4fe0] transition-colors cursor-pointer bg-transparent" data-ctx="team" data-val="pequeno">pequeno</button>
+            <button class="ctx-btn text-[12px] font-semibold px-3 py-[5px] rounded-[8px] border border-[#2a2519] text-[#6b6555] hover:border-[#5b4fe0] hover:text-[#5b4fe0] transition-colors cursor-pointer bg-transparent" data-ctx="team" data-val="médio">médio</button>
+            <button class="ctx-btn text-[12px] font-semibold px-3 py-[5px] rounded-[8px] border border-[#2a2519] text-[#6b6555] hover:border-[#5b4fe0] hover:text-[#5b4fe0] transition-colors cursor-pointer bg-transparent" data-ctx="team" data-val="grande">grande</button>
+          </div>
+        </div>
+        <div>
+          <div class="text-[12px] text-[#6b6555] mb-2">estágio</div>
+          <div class="flex gap-2">
+            <button class="ctx-btn text-[12px] font-semibold px-3 py-[5px] rounded-[8px] border border-[#2a2519] text-[#6b6555] hover:border-[#5b4fe0] hover:text-[#5b4fe0] transition-colors cursor-pointer bg-transparent" data-ctx="stage" data-val="inicial">inicial</button>
+            <button class="ctx-btn text-[12px] font-semibold px-3 py-[5px] rounded-[8px] border border-[#2a2519] text-[#6b6555] hover:border-[#5b4fe0] hover:text-[#5b4fe0] transition-colors cursor-pointer bg-transparent" data-ctx="stage" data-val="em escala">em escala</button>
+          </div>
+        </div>
+      </div>
+      <button class="mt-4 w-full bg-[#5b4fe0] text-white text-[13px] font-bold py-[10px] rounded-[11px] border-0 cursor-pointer hover:bg-[#4a3fce] transition-colors" type="button" data-ctx-evaluate data-rejected="${escapeHtml(rejected.id)}" data-adopted="${escapeHtml(adopted.id)}">avaliar qual lado combina mais com meu caso</button>
+      <div data-ctx-result class="mt-4"></div>
     </div>`;
 }
 
@@ -275,7 +359,9 @@ function renderConflict(pair) {
     ${axis ? `<div class="flex items-center gap-3 mt-6 pt-5 border-t border-[#2a2519]">
       <span class="font-mono text-[11px] font-bold text-[#6b6555] uppercase tracking-[0.1em] flex-none">O EIXO</span>
       <span class="text-[#a09880] text-[13px]">${escapeHtml(axis)}</span>
-    </div>` : ""}`;
+    </div>` : ""}
+    ${renderConsensusMap(rejected.topic, rejected.subject)}
+    ${renderContextForm(rejected, adopted)}`;
 }
 
 function filterChipCls(isActive, verdict) {
@@ -430,8 +516,34 @@ function renderResults() {
   }
 }
 
+// 2f — matriz de comparação de salvos
+function renderComparisonMatrix(items) {
+  if (items.length < 2) return "";
+  const rows = [
+    { key: "VEREDICTO", fn: (d) => `<span class="text-[12px] font-bold px-2 py-[2px] rounded-[6px] ${TAG_FLAT[d.verdict]||TAG_FLAT.kept}">${escapeHtml(verdictLabel(d.verdict))}</span>` },
+    { key: "ANO", fn: (d) => `<span class="font-mono text-[12px] text-[#6f6a5e]">${escapeHtml(d.year)}</span>` },
+    { key: "TÓPICO", fn: (d) => `<span class="text-[12px] text-[#46423a]">${escapeHtml(d.topic)}</span>` },
+    { key: "RAZÃO", fn: (d) => `<span class="text-[12px] text-[#46423a] leading-[1.5]">${escapeHtml(d.reason.slice(0,90))}${d.reason.length>90?"…":""}</span>` },
+    { key: "FONTE", fn: (d) => `<a href="${escapeHtml(d.sourceUrl)}" target="_blank" rel="noreferrer" class="text-[12px] font-semibold text-[#5b4fe0] hover:underline">${escapeHtml(hostname(d.sourceUrl))} ↗</a>` },
+  ];
+  const cols = `118px ${items.map(() => "1fr").join(" ")}`;
+  return `
+    <div class="mt-5 overflow-x-auto">
+      <div style="display:grid;grid-template-columns:${cols};border:1px solid #e8e4d8;border-radius:14px;overflow:hidden;background:#fff;min-width:500px">
+        <div class="bg-[#faf8f2] p-3 border-b border-[#e8e4d8] border-r border-[#e8e4d8]"></div>
+        ${items.map((d) => `<div class="bg-[#faf8f2] p-3 border-b border-[#e8e4d8] border-r border-[#e8e4d8] last:border-r-0"><span class="font-bold text-[13px] px-2 py-[3px] rounded-[6px]" style="background:${escapeHtml(d.color)};color:${escapeHtml(d.tone)}">${escapeHtml(d.company)}</span></div>`).join("")}
+        ${rows.map(({ key, fn }) => `
+          <div class="p-3 border-b border-[#efece3] border-r border-[#e8e4d8] last-of-type:border-b-0 font-mono text-[10px] font-bold text-[#a9a497] tracking-[0.06em] uppercase align-middle">${key}</div>
+          ${items.map((d) => `<div class="p-3 border-b border-[#efece3] border-r border-[#e8e4d8] last:border-r-0">${fn(d)}</div>`).join("")}
+        `).join("")}
+      </div>
+    </div>`;
+}
+
 function renderSaved() {
   const items = state.decisions.filter((d) => state.saved.has(d.id));
+  const matrixEl = $("[data-saved-matrix]");
+  if (matrixEl) matrixEl.innerHTML = items.length >= 2 ? renderComparisonMatrix(items) : "";
   $("[data-saved-grid]").innerHTML = items.map((d) => renderDecisionCard(d, true)).join("");
   $("[data-saved-empty]").style.display = items.length ? "none" : "block";
   $("[data-export-saved]").hidden = items.length === 0;
@@ -504,19 +616,68 @@ function renderDetail(decision, pushUrl = true) {
       </div>`
     : "";
 
+  const fresh = sourceFreshness(decision.year);
+  const weight = sourceWeight(decision.sourceUrl);
+  const weightLabel = weight === 3 ? "ADR público" : weight === 2 ? "eng blog" : "thread";
+  const weightColor = weight === 3 ? "#1a7a43" : weight === 2 ? "#b4571c" : "#a9a497";
+
+  // 2b — timeline de revisão
+  const timelineHtml = decision.revisedAt ? `
+    <div class="rounded-[14px] border border-[#e8e4d8] overflow-hidden">
+      <div class="px-5 pt-4 pb-3 border-b border-[#f0ece4]">
+        <span class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">linha do tempo</span>
+      </div>
+      <div class="px-5 py-5 relative">
+        <div class="absolute left-[58px] right-[58px] top-[42px] h-[3px] rounded-full" style="background:linear-gradient(90deg,#5b4fe0,#b4571c,#1a7a43)"></div>
+        <div class="grid gap-4" style="grid-template-columns:1fr 1fr 1fr">
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-3 h-3 rounded-full flex-none border-2 border-[#f4f1ea]" style="background:#5b4fe0;box-shadow:0 0 0 2px #5b4fe0"></span>
+              <span class="font-mono text-[13px] font-semibold text-[#16140f]">${escapeHtml(decision.year)}</span>
+            </div>
+            <div class="bg-white border border-[#e8e4d8] rounded-[11px] p-3">
+              <span class="text-[11px] font-bold text-[#1a7a43] bg-[#dcf3e4] px-2 py-[2px] rounded-[5px]">adotou</span>
+              <div class="font-bold text-[#16140f] text-[14px] mt-2">${escapeHtml(decision.subject)}</div>
+              <p class="text-[#6f6a5e] text-[12px] leading-[1.5] mt-1 mb-0">${escapeHtml(decision.context)}</p>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-3 h-3 rounded-full flex-none border-2 border-[#f4f1ea]" style="background:#b4571c;box-shadow:0 0 0 2px #b4571c"></span>
+              <span class="font-mono text-[13px] font-semibold text-[#16140f]">tensão</span>
+            </div>
+            <div class="bg-[#fff6e8] border border-[#f1d9b8] rounded-[11px] p-3">
+              <span class="text-[11px] font-bold text-[#9a4d12] bg-[#fbe9d6] px-2 py-[2px] rounded-[5px]">tensão</span>
+              <div class="font-bold text-[#16140f] text-[14px] mt-2">pressão para revisão</div>
+              <p class="text-[#a86b30] text-[12px] leading-[1.5] mt-1 mb-0">${escapeHtml(decision.reason).slice(0, 80)}…</p>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <span class="w-3 h-3 rounded-full flex-none border-2 border-[#f4f1ea]" style="background:#1a7a43;box-shadow:0 0 0 2px #1a7a43"></span>
+              <span class="font-mono text-[13px] font-semibold text-[#16140f]">${escapeHtml(decision.revisedAt)}</span>
+            </div>
+            <div class="bg-white border border-[#e8e4d8] rounded-[11px] p-3">
+              <span class="text-[11px] font-bold text-[#1a7a43] bg-[#dcf3e4] px-2 py-[2px] rounded-[5px]">revisou</span>
+              <div class="font-bold text-[#16140f] text-[14px] mt-2">nova decisão</div>
+              <p class="text-[#6f6a5e] text-[12px] leading-[1.5] mt-1 mb-0">${escapeHtml(decision.revisionNote || "")}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>` : "";
+
+  // 2g — markdown para citar
+  const mdSnippet = `> **${decision.company} ${verdictLabel(decision.verdict)} ${decision.subject}** (${decision.year})\n>   ${decision.reason}\n>   — via [arbiter](${location.origin}/d/${decision.id})`;
+
   body.innerHTML = `
     <div class="flex items-center gap-2.5">
       <span class="${PILL}" style="background:${escapeHtml(decision.color)};color:${escapeHtml(decision.tone)}">${escapeHtml(decision.company)}</span>
       <span class="${YEAR}">${escapeHtml(decision.year)}</span>
       <span class="${TAG[decision.verdict] || TAG.kept}">${escapeHtml(verdictLabel(decision.verdict))}</span>
+      <span class="ml-auto text-[11px] font-bold px-2 py-[3px] rounded-[6px]" style="color:${fresh.color};background:${fresh.bg}">${fresh.label}</span>
     </div>
-    ${decision.revisedAt ? `<div class="bg-[#fff8e8] border border-[#f0d880] rounded-[10px] px-4 py-3 flex items-start gap-2.5">
-      <span class="text-[#9c6414] text-[1rem] mt-[1px]">↻</span>
-      <div>
-        <p class="font-mono text-[0.72rem] font-bold text-[#9c6414] uppercase tracking-[0.08em] mb-1 mt-0">revisado em ${escapeHtml(decision.revisedAt)}</p>
-        ${decision.revisionNote ? `<p class="text-[#16140f] font-semibold text-[0.9rem] m-0">${escapeHtml(decision.revisionNote)}</p>` : ""}
-      </div>
-    </div>` : ""}
+    ${timelineHtml}
     <dl class="detail-body">
       <dt class="font-mono text-[#6f6a5e] text-[0.72rem] font-bold tracking-[0.08em] uppercase pt-[3px]">contexto</dt>
       <dd class="text-[#16140f] font-semibold leading-[1.55] m-0">${escapeHtml(decision.context)}</dd>
@@ -526,15 +687,38 @@ function renderDetail(decision, pushUrl = true) {
     <div class="flex flex-wrap gap-2">
       ${decision.tags.map((t) => `<span class="${CHIP} cursor-default">${escapeHtml(t)}</span>`).join("")}
     </div>
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-3 flex-wrap">
       <a class="bg-[#5b4fe0] text-white rounded-[10px] inline-flex items-center gap-1.5 text-[13px] font-semibold px-4 py-[9px] hover:bg-[#4a3fce] transition-colors" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer">
         abrir fonte ↗
-        <span class="opacity-70 text-[0.72rem]">${escapeHtml(sourceType(decision.sourceUrl))}</span>
       </a>
       <button class="border rounded-[10px] text-[13px] font-semibold px-4 py-[9px] cursor-pointer transition-colors"
         style="${isSaved ? "color:#5b4fe0;background:#eceaff;border-color:#c7c0f0" : "color:#6f6a5e;background:white;border-color:#e0dccf"}"
-        type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo ✓" : "salvar para comparar"}</button>
+        type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo ✓" : "salvar"}</button>
       <button class="bg-transparent border-0 text-[#a9a497] text-[13px] font-semibold cursor-pointer hover:text-[#16140f] transition-colors ml-auto" type="button" data-copy-link="/d/${escapeHtml(decision.id)}">copiar link</button>
+    </div>
+    <!-- 2d/2e — evidência + frescor -->
+    <div class="rounded-[12px] border border-[#e8e4d8] px-4 py-3 flex items-center gap-4 flex-wrap">
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[10px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">evidência</span>
+        ${sourceWeightDots(decision.sourceUrl)}
+        <span class="text-[12px] font-semibold" style="color:${weightColor}">${escapeHtml(weightLabel)}</span>
+      </div>
+      <div class="w-px h-4 bg-[#e8e4d8]"></div>
+      <div class="flex items-center gap-2">
+        <span class="font-mono text-[10px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">frescor</span>
+        <span class="text-[12px] font-semibold px-2 py-[2px] rounded-[5px]" style="color:${fresh.color};background:${fresh.bg}">${fresh.label}</span>
+      </div>
+      <div class="ml-auto">
+        <a href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" class="font-mono text-[11px] text-[#5b4fe0] hover:underline">${escapeHtml(hostname(decision.sourceUrl))} ↗</a>
+      </div>
+    </div>
+    <!-- 2g — citar -->
+    <div class="rounded-[12px] border border-[#e8e4d8] overflow-hidden">
+      <div class="px-4 py-3 border-b border-[#f0ece4] flex items-center justify-between">
+        <span class="font-mono text-[11px] font-bold text-[#a9a497] uppercase tracking-[0.08em]">citar / incorporar</span>
+        <button class="text-[#5b4fe0] text-[12px] font-semibold hover:underline cursor-pointer bg-transparent border-0 p-0" type="button" data-copy-md="${escapeHtml(btoa(mdSnippet))}">copiar markdown</button>
+      </div>
+      <pre class="bg-[#16140f] m-0 px-4 py-3 text-[12px] leading-[1.7] overflow-x-auto" style="color:#d8d3c4;font-family:'JetBrains Mono',monospace">${escapeHtml(mdSnippet)}</pre>
     </div>
     ${conflictsHtml}
     ${relatedHtml}`;
@@ -880,6 +1064,64 @@ function bindEvents() {
       return;
     }
 
+    // 2a — seleção de contexto (toggle ativo)
+    const ctxBtn = event.target.closest(".ctx-btn");
+    if (ctxBtn) {
+      const ctx = ctxBtn.dataset.ctx;
+      const form = ctxBtn.closest("[data-context-form]");
+      form.querySelectorAll(`.ctx-btn[data-ctx="${ctx}"]`).forEach((b) => {
+        const active = b === ctxBtn;
+        b.style.background = active ? "#5b4fe0" : "transparent";
+        b.style.color = active ? "#fff" : "";
+        b.style.borderColor = active ? "#5b4fe0" : "";
+      });
+      return;
+    }
+
+    // 2a — avaliar contexto
+    const evalBtn = event.target.closest("[data-ctx-evaluate]");
+    if (evalBtn) {
+      const form = evalBtn.closest("[data-context-form]");
+      const team = form.querySelector(".ctx-btn[data-ctx='team'][style*='#5b4fe0']")?.dataset.val || null;
+      const stage = form.querySelector(".ctx-btn[data-ctx='stage'][style*='#5b4fe0']")?.dataset.val || null;
+      const rejectedId = evalBtn.dataset.rejected;
+      const adoptedId = evalBtn.dataset.adopted;
+      const rejectedD = state.decisions.find((d) => d.id === rejectedId);
+      const adoptedD = state.decisions.find((d) => d.id === adoptedId);
+      const result = $("[data-ctx-result]", form);
+      if (!team && !stage) { result.innerHTML = `<p class="text-[#6b6555] text-[13px]">selecione pelo menos uma opção acima.</p>`; return; }
+
+      // heurística simples: time pequeno/inicial → rejeitou; grande/em escala → adotou
+      const smallSignals = ["pequeno", "inicial"].filter(v => [team, stage].includes(v)).length;
+      const largeSignals = ["grande", "em escala"].filter(v => [team, stage].includes(v)).length;
+      const matchRejected = smallSignals > largeSignals;
+      const match = matchRejected ? rejectedD : adoptedD;
+      const other = matchRejected ? adoptedD : rejectedD;
+      const pct = smallSignals === largeSignals ? 55 : (smallSignals > largeSignals ? 82 : 80);
+      const matchColor = match?.verdict === "rejected" ? "#e0863c" : "#4ea36b";
+      const otherPct = 100 - pct;
+
+      result.innerHTML = `
+        <div class="bg-[#1f1c16] border border-[#34302688] rounded-[14px] p-4" style="border-top:3px solid ${matchColor}">
+          <div class="flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <span class="text-[13px] font-bold px-2 py-[3px] rounded-[6px]" style="background:${escapeHtml(match?.color||'#333')};color:${escapeHtml(match?.tone||'#fff')}">${escapeHtml(match?.company||'')}</span>
+              <span class="text-white font-bold text-[15px]">${escapeHtml(verdictLabel(match?.verdict||'kept'))} ${escapeHtml(match?.subject||'')}</span>
+            </div>
+            <div class="text-right">
+              <div class="font-bold text-[22px] leading-none" style="color:${matchColor}">${pct}%</div>
+              <div class="font-mono text-[10px] text-[#6b6555]">match</div>
+            </div>
+          </div>
+          <div class="mt-3 h-[6px] rounded-full overflow-hidden bg-[#2a2519]">
+            <div class="h-full rounded-full" style="width:${pct}%;background:${matchColor}"></div>
+          </div>
+          <p class="text-[#a09880] text-[12px] mt-3 mb-0">contexto parecido com ${escapeHtml(match?.company||'')} — ${escapeHtml((match?.context||'').slice(0,80))}…</p>
+          ${other ? `<p class="text-[#6b6555] text-[11px] mt-2 mb-0">⚠ mas se crescer rápido, reavalie — ${escapeHtml(other.company)} (${otherPct}% match) mostra outro caminho.</p>` : ""}
+        </div>`;
+      return;
+    }
+
     const conflictButton = event.target.closest("[data-conflict-for]");
     if (conflictButton) {
       const decision = state.decisions.find((d) => d.id === conflictButton.dataset.conflictFor);
@@ -898,6 +1140,17 @@ function bindEvents() {
         const orig = copyBtn.textContent;
         copyBtn.textContent = "copiado!";
         setTimeout(() => { copyBtn.textContent = orig; }, 2000);
+      });
+      return;
+    }
+
+    const copyMdBtn = event.target.closest("[data-copy-md]");
+    if (copyMdBtn) {
+      const md = atob(copyMdBtn.dataset.copyMd);
+      navigator.clipboard.writeText(md).then(() => {
+        const orig = copyMdBtn.textContent;
+        copyMdBtn.textContent = "copiado!";
+        setTimeout(() => { copyMdBtn.textContent = orig; }, 2000);
       });
       return;
     }

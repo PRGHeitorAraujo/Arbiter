@@ -206,6 +206,7 @@ function renderCompactCard(decision) {
       <span class="font-semibold text-[15px] text-[#16140f] flex-1 truncate leading-snug">${escapeHtml(decision.title)}</span>
       <span class="${TAG_FLAT[decision.verdict] || TAG_FLAT.kept} flex-none">${escapeHtml(verdictLabel(decision.verdict))}</span>
       <a class="text-[#5b4fe0] text-[13px] font-semibold hover:underline flex-none" href="${escapeHtml(decision.sourceUrl)}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${escapeHtml(sourceType(decision.sourceUrl))} ↗</a>
+      ${state.hasConflict.has(decision.id) ? `<button class="bg-transparent border-0 cursor-pointer text-[13px] font-semibold p-0 flex-none text-[#a9a497] hover:text-[#9a4d12] transition-colors" type="button" data-conflict-for="${escapeHtml(decision.id)}">conflito</button>` : ""}
       <button class="bg-transparent border-0 cursor-pointer text-[13px] font-semibold p-0 flex-none transition-colors ${isSaved ? "text-[#5b4fe0]" : "text-[#a9a497] hover:text-[#16140f]"}" type="button" data-save="${escapeHtml(decision.id)}">${isSaved ? "salvo ✓" : "salvar"}</button>
     </div>`;
 }
@@ -261,7 +262,7 @@ function renderConflict(pair) {
   }
   const axisKey = `${rejected.topic}:${rejected.subject}`;
   const axis = CONFLICT_AXES[axisKey] || null;
-  panel.style.display = "";
+  panel.style.display = "block";
   panel.className = "bg-[#16140f] rounded-[20px] mt-7 p-7";
   panel.innerHTML = `
     <h2 class="text-[1.1rem] font-bold mb-2 mt-0 text-white">⚡ conflito — ${escapeHtml(rejected.subject.toLowerCase())} em contextos opostos</h2>

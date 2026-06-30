@@ -301,8 +301,14 @@ function switchTab(name) {
 function renderResults() {
   const searched = searchDecisions(state.decisions, state.query);
   state.results = applyFilters(searched);
+
+  const hasActiveSearch = !!(state.query || state.filters.topic || state.filters.verdict || state.filters.company);
+
   $("[data-query-input]").value = state.query;
   $("[data-result-count]").textContent = `${state.results.length} decisoes encontradas`;
+
+  $("[data-filter-bar]").hidden = !hasActiveSearch;
+  $("[data-result-meta]").hidden = !hasActiveSearch;
 
   const grid = $("[data-decision-grid]");
   const isCompact = state.viewMode === "compact";
@@ -311,18 +317,25 @@ function renderResults() {
   const visible = state.results.slice(0, state.displayLimit);
   const remaining = state.results.length - visible.length;
 
-  grid.innerHTML = state.results.length
-    ? visible.map(isCompact ? renderCompactCard : renderDecisionCard).join("")
-    : (state.query || state.filters.topic || state.filters.verdict || state.filters.company)
-      ? `<div class="${isCompact ? "" : "col-span-2 "}bg-white border border-dashed border-[#dfdcd4] rounded-xl text-[#85827c] p-8 text-center">
+  if (!hasActiveSearch) {
+    grid.innerHTML = `
+      <div class="${isCompact ? "" : "col-span-2 "}text-center py-14">
+        <p class="font-black text-[1.05rem] mb-2 mt-0">busque por tecnologia, problema ou contexto</p>
+        <p class="text-[#85827c] font-bold text-[0.88rem] mb-6 mt-0">ex: banco de dados para analytics, migrar de monolito, sistema de notificacoes</p>
+        <button class="inline-flex items-center gap-1.5 rounded-lg font-extrabold text-[0.88rem] min-h-[38px] px-5 bg-white border border-[#dfdcd4] text-[#534ab7] hover:bg-[#edeaff] transition-colors" type="button" data-view="topicos">explorar tópicos →</button>
+      </div>`;
+  } else {
+    grid.innerHTML = state.results.length
+      ? visible.map(isCompact ? renderCompactCard : renderDecisionCard).join("")
+      : `<div class="${isCompact ? "" : "col-span-2 "}bg-white border border-dashed border-[#dfdcd4] rounded-xl text-[#85827c] p-8 text-center">
           <p class="font-black text-[1rem] mb-1 mt-0 text-[#232323]">nenhuma decisão encontrada</p>
           <p class="font-bold text-[0.9rem] m-0">tente outros termos ou remova algum filtro ativo</p>
-        </div>`
-      : "";
+        </div>`;
+  }
 
   const verMaisBtn = $("[data-ver-mais]");
   if (verMaisBtn) {
-    verMaisBtn.hidden = remaining <= 0;
+    verMaisBtn.hidden = !hasActiveSearch || remaining <= 0;
     if (remaining > 0) verMaisBtn.textContent = `ver mais ${remaining} decisões`;
   }
 
@@ -334,9 +347,14 @@ function renderResults() {
       : `<svg width="15" height="15" viewBox="0 0 15 15" fill="none"><line x1="1" y1="3.5" x2="14" y2="3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="7.5" x2="14" y2="7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="11.5" x2="14" y2="11.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>`;
   }
 
-  renderComparisonTable(state.results);
-  renderConflict(findConflict(getConflictPool()));
-  renderFilterBar();
+  if (hasActiveSearch) {
+    renderComparisonTable(state.results);
+    renderConflict(findConflict(getConflictPool()));
+    renderFilterBar();
+  } else {
+    $("[data-comparison]").innerHTML = "";
+    renderConflict(null);
+  }
 }
 
 function renderSaved() {

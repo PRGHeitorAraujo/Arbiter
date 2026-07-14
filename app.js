@@ -1277,9 +1277,6 @@ function bindEvents() {
       return;
     }
 
-    const darkToggle = event.target.closest("[data-dark-toggle]");
-    if (darkToggle) { toggleDarkMode(); return; }
-
     const chip = event.target.closest("[data-query]");
     if (chip) { setQuery(chip.dataset.query); return; }
 
@@ -1487,33 +1484,9 @@ function bindEvents() {
 
 // ── init ──────────────────────────────────────────────────────────────────────
 
-const DARK_KEY = "arbiter.dark";
-
-function initDarkMode() {
-  if (localStorage.getItem(DARK_KEY) === "1") document.documentElement.classList.add("dark");
-  updateDarkToggle();
-}
-
-function toggleDarkMode() {
-  const isDark = document.documentElement.classList.toggle("dark");
-  localStorage.setItem(DARK_KEY, isDark ? "1" : "0");
-  updateDarkToggle();
-}
-
-function updateDarkToggle() {
-  const btn = $("[data-dark-toggle]");
-  if (!btn) return;
-  const isDark = document.documentElement.classList.contains("dark");
-  btn.title = isDark ? "modo claro" : "modo escuro";
-  btn.innerHTML = isDark
-    ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="7" cy="7" r="2.5"/><line x1="7" y1="0.5" x2="7" y2="2"/><line x1="7" y1="12" x2="7" y2="13.5"/><line x1="0.5" y1="7" x2="2" y2="7"/><line x1="12" y1="7" x2="13.5" y2="7"/><line x1="2.65" y1="2.65" x2="3.7" y2="3.7"/><line x1="10.3" y1="10.3" x2="11.35" y2="11.35"/><line x1="11.35" y1="2.65" x2="10.3" y2="3.7"/><line x1="3.7" y1="10.3" x2="2.65" y2="11.35"/></svg>`
-    : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12.25 7.46A5.25 5.25 0 1 1 6.54 1.75 4.08 4.08 0 0 0 12.25 7.46z"/></svg>`;
-}
-
 async function init() {
   renderChips("[data-chip-row]");
   bindEvents();
-  initDarkMode();
 
   try {
     const [rawDecisions, sources] = await Promise.all([loadJson("data/decisions.json"), loadJson("data/sources.json")]);

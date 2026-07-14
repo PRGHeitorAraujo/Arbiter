@@ -46,8 +46,11 @@ const server = http.createServer((req, res) => {
       return;
     }
 
+    const ext = path.extname(filePath);
+    const noCache = ext === ".js" || ext === ".css";
     send(res, 200, data, {
-      "content-type": types[path.extname(filePath)] || "application/octet-stream",
+      "content-type": types[ext] || "application/octet-stream",
+      ...(noCache ? { "cache-control": "no-store" } : {}),
     });
   });
 });
